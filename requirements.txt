@@ -1,5 +1,6 @@
 docutils==0.17.1
 numpy==1.21.2
+opencv-python==4.5.3.56
 Pillow==8.3.1
 pycodestyle==2.7.0
 rstcheck==3.3.1

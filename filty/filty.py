@@ -4,6 +4,7 @@ filty
 
 Filter functions for image data.
 """
+import cv2
 from PIL import Image, ImageOps
 import numpy as np
 
@@ -12,6 +13,13 @@ from filty.utility import (grayscale_to_rgb, uses_uint8, COLOR,
 
 
 # Image filter functions.
+@processes_by_grayscale_frame
+def filter_box_blur(a: np.ndarray, size: int) -> np.ndarray:
+    """Perform a box blur."""
+    kernel = np.ones((size, size), float) / size ** 2
+    return cv2.filter2D(a, -1, kernel)
+
+
 @processes_by_grayscale_frame
 @uses_uint8
 def filter_colorize(a: np.ndarray, 
@@ -52,14 +60,13 @@ def filter_colorize(a: np.ndarray,
 
 
 if __name__ == '__main__':
-    from tests.common import VIDEO_2_3_3
+    from tests.common import VIDEO_2_5_5
     from filty.utility import print_array
     
-    filter = filter_colorize
+    filter = filter_box_blur
     kwargs = {
-        'a': VIDEO_2_3_3.copy(),
-        'white': 'hsv(350, 100%, 100%)',
-        'black': 'hsv(10, 100%, 0%)',
+        'a': VIDEO_2_5_5.copy(),
+        'size': 2,
     }
     out = filter(**kwargs)
     print_array(out, 2)
