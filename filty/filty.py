@@ -6,16 +6,16 @@ Filter functions for image data.
 """
 import numpy as np
 
+from filty.utility import grayscale_to_rgb
+
 
 # Image filter functions.
-def colorize(a: np.ndarray, color: tuple[float]) -> np.array:
+def filter_colorize(a: np.ndarray, color: tuple[float]) -> np.array:
     """Colorize a grayscale image."""
-    # Convert grayscale image to RGB.
-    new_shape = (*a.shape, 3)
-    new_a = np.zeros(new_shape, dtype=a.dtype)
-    for channel in range(3):
-        new_a[..., channel] = a
+    # Grayscale data can't have color.
+    if a.shape[-1] != 3 or len(a.shape) == 2:
+        a = grayscale_to_rgb(a)
 
     # Multiply the solid color with the grayscale.
-    new_a *= color
-    return new_a
+    a *= color
+    return a

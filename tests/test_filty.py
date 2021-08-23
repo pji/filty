@@ -31,7 +31,21 @@ class ColorizeTestCase(FilterTestCase):
         """Given an RGB color and grayscale image data, the color is
         applied to the image data.
         """
-        filter = f.colorize
+        filter = f.filter_colorize
+        exp = np.array([
+            [[1.00, 0.50, 0.50], [0.50, 0.25, 0.25], [0.00, 0.00, 0.00]],
+            [[0.50, 0.25, 0.25], [0.00, 0.00, 0.00], [0.50, 0.25, 0.25]],
+            [[0.00, 0.00, 0.00], [0.50, 0.25, 0.25], [1.00, 0.50, 0.50]],
+        ], dtype=np.float32)
+        a = F.copy()
+        color = (1.0, 0.5, 0.5)
+        self.run_test(filter, exp, a, color=color)
+
+    def test_colorize_rgb(self):
+        """Given an RGB color and RGB image data, the color is applied
+        to the image data.
+        """
+        filter = f.filter_colorize
         exp = np.array([
             [
                 [[1.00, 0.50, 0.50], [0.50, 0.25, 0.25], [0.00, 0.00, 0.00]],
@@ -39,6 +53,12 @@ class ColorizeTestCase(FilterTestCase):
                 [[0.00, 0.00, 0.00], [0.50, 0.25, 0.25], [1.00, 0.50, 0.50]],
             ],
         ], dtype=np.float32)
-        a = F.copy()
-        color = (1.0, 0.5, 0.5),
+        a = np.array([
+            [
+                [[1.0, 1.0, 1.0], [0.5, 0.5, 0.5], [0.0, 0.0, 0.0]],
+                [[0.5, 0.5, 0.5], [0.0, 0.0, 0.0], [0.5, 0.5, 0.5]],
+                [[0.0, 0.0, 0.0], [0.5, 0.5, 0.5], [1.0, 1.0, 1.0]],
+            ],
+        ], dtype=np.float32)
+        color = (1.0, 0.5, 0.5)
         self.run_test(filter, exp, a, color=color)
