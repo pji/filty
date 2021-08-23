@@ -6,7 +6,7 @@ import unittest as ut
 
 import numpy as np
 
-from tests.common import ArrayTestCase, A, F
+from tests.common import ArrayTestCase, A, F, VIDEO_2_3_3
 from filty import filty as f
 
 
@@ -22,7 +22,7 @@ class FilterTestCase(ArrayTestCase):
         act = filter(a, *args, **kwargs)
 
         # Determine test result.
-        self.assertArrayEqual(exp, act)
+        self.assertArrayEqual(exp, act, round_=True)
 
 
 # Test cases.
@@ -34,19 +34,19 @@ class ColorizeTestCase(FilterTestCase):
         filter = f.filter_colorize
         exp = np.array([
             [
-                [1.0, 0.0, 0.16862745583057404],
-                [0.49803921580314636, 0.0, 0.08235294371843338],
-                [0.0, 0.0, 0.0],
+                [1.0000, 0.0000, 0.1686],
+                [0.4980, 0.0000, 0.0824],
+                [0.0000, 0.0000, 0.0000],
             ],
             [
-                [0.49803921580314636, 0.0, 0.08235294371843338],
-                [0.0, 0.0, 0.0],
-                [0.49803921580314636, 0.0, 0.08235294371843338],
+                [0.4980, 0.0000, 0.0824],
+                [0.0000, 0.0000, 0.0000],
+                [0.4980, 0.0000, 0.0824],
             ],
             [
-                [0.0, 0.0, 0.0],
-                [0.49803921580314636, 0.0, 0.08235294371843338],
-                [1.0, 0.0, 0.16862745583057404],
+                [0.0000, 0.0000, 0.0000],
+                [0.4980, 0.0000, 0.0824],
+                [1.0000, 0.0000, 0.1686],
             ],
         ], dtype=np.float32)
         a = F.copy()
@@ -56,41 +56,77 @@ class ColorizeTestCase(FilterTestCase):
         }
         self.run_test(filter, exp, a, **kwargs)
 
-    @ut.skip
-    def test_colorize_rgb(self):
-        """Given an RGB color and RGB image data, the color is applied
-        to the image data.
+    def test_filter_by_colorkey(self):
+        """Given an RGB color and grayscale image data, the color is
+        applied to the image data.
         """
         filter = f.filter_colorize
         exp = np.array([
             [
-                [[1.00, 0.50, 0.50], [0.50, 0.25, 0.25], [0.00, 0.00, 0.00]],
-                [[0.50, 0.25, 0.25], [0.00, 0.00, 0.00], [0.50, 0.25, 0.25]],
-                [[0.00, 0.00, 0.00], [0.50, 0.25, 0.25], [1.00, 0.50, 0.50]],
+                [1.0000, 0.0000, 0.1686],
+                [0.4980, 0.0000, 0.0824],
+                [0.0000, 0.0000, 0.0000],
             ],
-        ], dtype=np.float32)
-        a = np.array([
             [
-                [[1.0, 1.0, 1.0], [0.5, 0.5, 0.5], [0.0, 0.0, 0.0]],
-                [[0.5, 0.5, 0.5], [0.0, 0.0, 0.0], [0.5, 0.5, 0.5]],
-                [[0.0, 0.0, 0.0], [0.5, 0.5, 0.5], [1.0, 1.0, 1.0]],
+                [0.4980, 0.0000, 0.0824],
+                [0.0000, 0.0000, 0.0000],
+                [0.4980, 0.0000, 0.0824],
             ],
-        ], dtype=np.float32)
-        color = (1.0, 0.5, 0.5)
-        self.run_test(filter, exp, a, color=color)
-
-    @ut.skip
-    def test_colorize_screen(self):
-        """Given the screen mode, the color is applied using the screen
-        blend rather than multiply.
-        """
-        filter = f.filter_colorize
-        exp = np.array([
-            [[1.00, 1.00, 1.00], [1.00, 0.75, 0.75], [1.00, 0.50, 0.50]],
-            [[1.00, 0.75, 0.75], [1.00, 0.50, 0.50], [1.00, 0.75, 0.75]],
-            [[1.00, 0.50, 0.50], [1.00, 0.75, 0.75], [1.00, 1.00, 1.00]],
+            [
+                [0.0000, 0.0000, 0.0000],
+                [0.4980, 0.0000, 0.0824],
+                [1.0000, 0.0000, 0.1686],
+            ],
         ], dtype=np.float32)
         a = F.copy()
-        color = (1.0, 0.5, 0.5)
-        blend = 'screen'
-        self.run_test(filter, exp, a, color=color, blend=blend)
+        kwargs = {
+            'colorkey': 's',
+        }
+        self.run_test(filter, exp, a, **kwargs)
+
+    def test_filter_on_video(self):
+        """Given three-dimensional image data, the filter should
+        colorize every frame of the data.
+        """
+        filter = f.filter_colorize
+        exp = np.array([
+            [
+                [
+                    [1.0000, 0.0000, 0.1686],
+                    [0.4980, 0.0000, 0.0824],
+                    [0.0000, 0.0000, 0.0000],
+                ],
+                [
+                    [0.4980, 0.0000, 0.0824],
+                    [0.0000, 0.0000, 0.0000],
+                    [0.4980, 0.0000, 0.0824],
+                ],
+                [
+                    [0.0000, 0.0000, 0.0000],
+                    [0.4980, 0.0000, 0.0824],
+                    [1.0000, 0.0000, 0.1686],
+                ],
+            ],
+            [
+                [
+                    [1.0000, 0.0000, 0.1686],
+                    [0.4980, 0.0000, 0.0824],
+                    [0.0000, 0.0000, 0.0000],
+                ],
+                [
+                    [0.4980, 0.0000, 0.0824],
+                    [0.0000, 0.0000, 0.0000],
+                    [0.4980, 0.0000, 0.0824],
+                ],
+                [
+                    [0.0000, 0.0000, 0.0000],
+                    [0.4980, 0.0000, 0.0824],
+                    [1.0000, 0.0000, 0.1686],
+                ],
+            ],
+        ], dtype=np.float32)
+        a = VIDEO_2_3_3.copy()
+        kwargs = {
+            'colorkey': 's',
+        }
+        self.run_test(filter, exp, a, **kwargs)
