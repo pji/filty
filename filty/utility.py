@@ -26,9 +26,7 @@ def print_array(a: np.ndarray, depth: int = 0, color: bool = True) -> None:
         print(' ' * (4 * depth) + '],')
 
     else:
-        if a.dtype == np.float32 or a.dtype == np.float64:
-            tmp = '{:>1.4f}'
-        else:
-            tmp = '{}'
-        nums = [tmp.format(n) for n in a]
+#         if a.dtype == np.float32 or a.dtype == np.float64:
+#             a = np.around(a, 4)
+        nums = [f'{n}' for n in a]
         print(' ' * (4 * depth) + '[' + ', '.join(nums) + '],')

@@ -33,14 +33,30 @@ class ColorizeTestCase(FilterTestCase):
         """
         filter = f.filter_colorize
         exp = np.array([
-            [[1.00, 0.50, 0.50], [0.50, 0.25, 0.25], [0.00, 0.00, 0.00]],
-            [[0.50, 0.25, 0.25], [0.00, 0.00, 0.00], [0.50, 0.25, 0.25]],
-            [[0.00, 0.00, 0.00], [0.50, 0.25, 0.25], [1.00, 0.50, 0.50]],
+            [
+                [1.0, 0.0, 0.16862745583057404],
+                [0.49803921580314636, 0.0, 0.08235294371843338],
+                [0.0, 0.0, 0.0],
+            ],
+            [
+                [0.49803921580314636, 0.0, 0.08235294371843338],
+                [0.0, 0.0, 0.0],
+                [0.49803921580314636, 0.0, 0.08235294371843338],
+            ],
+            [
+                [0.0, 0.0, 0.0],
+                [0.49803921580314636, 0.0, 0.08235294371843338],
+                [1.0, 0.0, 0.16862745583057404],
+            ],
         ], dtype=np.float32)
         a = F.copy()
-        color = (1.0, 0.5, 0.5)
-        self.run_test(filter, exp, a, color=color)
+        kwargs = {
+            'white': 'hsv(350, 100%, 100%)',
+            'black': 'hsv(10, 100%, 0%)',
+        }
+        self.run_test(filter, exp, a, **kwargs)
 
+    @ut.skip
     def test_colorize_rgb(self):
         """Given an RGB color and RGB image data, the color is applied
         to the image data.
@@ -63,6 +79,7 @@ class ColorizeTestCase(FilterTestCase):
         color = (1.0, 0.5, 0.5)
         self.run_test(filter, exp, a, color=color)
 
+    @ut.skip
     def test_colorize_screen(self):
         """Given the screen mode, the color is applied using the screen
         blend rather than multiply.

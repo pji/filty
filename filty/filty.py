@@ -4,6 +4,7 @@ filty
 
 Filter functions for image data.
 """
+from PIL import Image, ImageOps
 import numpy as np
 
 from filty.utility import grayscale_to_rgb
@@ -11,22 +12,24 @@ from filty.utility import grayscale_to_rgb
 
 # Image filter functions.
 def filter_colorize(a: np.ndarray, 
-                    color: tuple[float],
-                    blend: str = 'multiply') -> np.array:
+                    white: str,
+                    black: str) -> np.array:
     """Colorize a grayscale image."""
-    # Grayscale data can't have color.
-    if a.shape[-1] != 3 or len(a.shape) == 2:
-        a = grayscale_to_rgb(a)
-
-    # Blend the solid color with the grayscale.
-    if blend == 'multiply':
-        a *= color
-    elif blend == 'screen':
-        rev_a = 1 - a
-        rev_color = tuple(1 - c for c in color)
-        rev_a *= rev_color
-        a = 1 - rev_a
-    return a
+    src_space = 'L'
+    dst_space = 'RGB'
+    a_L_mode = (a * 0xff).astype(np.uint8)
+    img = Image.fromarray(a_L_mode, mode=src_space)
+    img = ImageOps.colorize(**{
+        'image': img,
+        'black': black,
+        'white': white,
+        'blackpoint': 0x00,
+        'midpoint': 0x7f,
+        'whitepoint': 0xff,
+    })
+    img = img.convert(dst_space)
+    out = np.array(img, dtype=a.dtype) / 0xff
+    return out
 
 
 if __name__ == '__main__':
@@ -36,8 +39,8 @@ if __name__ == '__main__':
     filter = filter_colorize
     kwargs = {
         'a': F.copy(),
-        'color': (1.0, 0.5, 0.5),
-        'blend': 'screen',
+        'white': 'hsv(350, 100%, 100%)',
+        'black': 'hsv(10, 100%, 0%)',
     }
     out = filter(**kwargs)
     print_array(out)

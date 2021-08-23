@@ -1,4 +1,5 @@
 docutils==0.17.1
 numpy==1.21.2
+Pillow==8.3.1
 pycodestyle==2.7.0
 rstcheck==3.3.1
