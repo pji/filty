@@ -59,14 +59,24 @@ def filter_colorize(a: np.ndarray,
     return out
 
 
+def filter_contrast(a: np.ndarray) -> np.ndarray:
+    """Adjust the image to fill the full dynamic range."""
+    a_min = np.min(a)
+    a_max = np.max(a)
+    scale = a_max - a_min
+    if scale != 0:
+        a = a - a_min
+        a = a / scale
+    return a
+
+
 if __name__ == '__main__':
-    from tests.common import VIDEO_2_5_5
+    from tests.common import IMAGE_5_5_LOW_CONTRAST
     from filty.utility import print_array
     
-    filter = filter_box_blur
+    filter = filter_contrast
     kwargs = {
-        'a': VIDEO_2_5_5.copy(),
-        'size': 2,
+        'a': IMAGE_5_5_LOW_CONTRAST.copy(),
     }
     out = filter(**kwargs)
     print_array(out, 2)

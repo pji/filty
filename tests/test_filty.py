@@ -6,7 +6,8 @@ import unittest as ut
 
 import numpy as np
 
-from tests.common import ArrayTestCase, A, F, VIDEO_2_3_3, VIDEO_2_5_5
+from tests.common import (ArrayTestCase, A, F, VIDEO_2_3_3, VIDEO_2_5_5,
+                          IMAGE_5_5_LOW_CONTRAST)
 from filty import filty as f
 
 
@@ -176,3 +177,20 @@ class ColorizeTestCase(FilterTestCase):
             'colorkey': 's',
         }
         self.run_test(filter, exp, a, **kwargs)
+
+
+class ContrastTestCase(FilterTestCase):
+    def test_filter(self):
+        """Given image data, adjust the range of the data to ensure
+        the darkest color is black and the lightest is white.
+        """
+        filter = f.filter_contrast
+        exp = np.array([
+            [0.0000, 0.2500, 0.5000, 0.7500, 1.0000],
+            [0.0000, 0.2500, 0.5000, 0.7500, 1.0000],
+            [0.0000, 0.2500, 0.5000, 0.7500, 1.0000],
+            [0.0000, 0.2500, 0.5000, 0.7500, 1.0000],
+            [0.0000, 0.2500, 0.5000, 0.7500, 1.0000],
+        ], dtype=np.float32)
+        a = IMAGE_5_5_LOW_CONTRAST.copy()
+        self.run_test(filter, exp, a)
