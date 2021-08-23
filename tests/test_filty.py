@@ -62,3 +62,18 @@ class ColorizeTestCase(FilterTestCase):
         ], dtype=np.float32)
         color = (1.0, 0.5, 0.5)
         self.run_test(filter, exp, a, color=color)
+
+    def test_colorize_screen(self):
+        """Given the screen mode, the color is applied using the screen
+        blend rather than multiply.
+        """
+        filter = f.filter_colorize
+        exp = np.array([
+            [[1.00, 1.00, 1.00], [1.00, 0.75, 0.75], [1.00, 0.50, 0.50]],
+            [[1.00, 0.75, 0.75], [1.00, 0.50, 0.50], [1.00, 0.75, 0.75]],
+            [[1.00, 0.50, 0.50], [1.00, 0.75, 0.75], [1.00, 1.00, 1.00]],
+        ], dtype=np.float32)
+        a = F.copy()
+        color = (1.0, 0.5, 0.5)
+        blend = 'screen'
+        self.run_test(filter, exp, a, color=color, blend=blend)
