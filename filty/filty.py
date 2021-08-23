@@ -12,6 +12,10 @@ from filty.utility import (grayscale_to_rgb, uses_uint8, COLOR,
                            processes_by_grayscale_frame)
 
 
+# Useful constants.
+X, Y, Z = -1, -2, -3
+
+
 # Image filter functions.
 @processes_by_grayscale_frame
 def filter_box_blur(a: np.ndarray, size: int) -> np.ndarray:
@@ -70,13 +74,19 @@ def filter_contrast(a: np.ndarray) -> np.ndarray:
     return a
 
 
+def filter_flip(a: np.ndarray, axis: int) -> np.ndarray:
+    """Flip the image around an axis."""
+    return np.flip(a, axis)
+
+
 if __name__ == '__main__':
-    from tests.common import IMAGE_5_5_LOW_CONTRAST
+    from tests.common import A, IMAGE_5_5_LOW_CONTRAST
     from filty.utility import print_array
     
-    filter = filter_contrast
+    filter = filter_flip
     kwargs = {
-        'a': IMAGE_5_5_LOW_CONTRAST.copy(),
+        'a': A.copy(),
+        'axis': X,
     }
     out = filter(**kwargs)
     print_array(out, 2)
