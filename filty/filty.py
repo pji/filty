@@ -80,13 +80,13 @@ def filter_flip(a: np.ndarray, axis: int) -> np.ndarray:
 
 
 if __name__ == '__main__':
-    from tests.common import A, IMAGE_5_5_LOW_CONTRAST
+    from tests.common import A, VIDEO_2_5_5
     from filty.utility import print_array
     
     filter = filter_flip
     kwargs = {
-        'a': A.copy(),
-        'axis': X,
+        'a': VIDEO_2_5_5.copy(),
+        'axis': Z,
     }
     out = filter(**kwargs)
     print_array(out, 2)

@@ -213,3 +213,47 @@ class FlipTestCase(FilterTestCase):
             'axis': f.X,
         }
         self.run_test(filter, exp, **kwarg)
+
+    def test_flip_y_axis(self):
+        """Given image data and an axis, flip the image around
+        that axis.
+        """
+        filter = f.filter_flip
+        exp = np.array([
+            [1.0000, 0.7500, 0.5000, 0.2500, 0.0000],
+            [0.7500, 1.0000, 0.7500, 0.5000, 0.2500],
+            [0.5000, 0.7500, 1.0000, 0.7500, 0.5000],
+            [0.2500, 0.5000, 0.7500, 1.0000, 0.7500],
+            [0.0000, 0.2500, 0.5000, 0.7500, 1.0000],
+        ], dtype=np.float32)
+        kwarg = {
+            'axis': f.X,
+        }
+        self.run_test(filter, exp, **kwarg)
+
+    def test_flip_z_axis(self):
+        """Given image data and an axis, flip the image around
+        that axis.
+        """
+        filter = f.filter_flip
+        exp = np.array([
+            [
+                [1.0000, 0.7500, 0.5000, 0.2500, 0.0000],
+                [0.7500, 1.0000, 0.7500, 0.5000, 0.2500],
+                [0.5000, 0.7500, 1.0000, 0.7500, 0.5000],
+                [0.2500, 0.5000, 0.7500, 1.0000, 0.7500],
+                [0.0000, 0.2500, 0.5000, 0.7500, 1.0000],
+            ],
+            [
+                [0.0000, 0.2500, 0.5000, 0.7500, 1.0000],
+                [0.2500, 0.5000, 0.7500, 1.0000, 0.7500],
+                [0.5000, 0.7500, 1.0000, 0.7500, 0.5000],
+                [0.7500, 1.0000, 0.7500, 0.5000, 0.2500],
+                [1.0000, 0.7500, 0.5000, 0.2500, 0.0000],
+            ],
+        ], dtype=np.float32)
+        a = VIDEO_2_5_5.copy()
+        kwarg = {
+            'axis': f.Z,
+        }
+        self.run_test(filter, exp, a, **kwarg)
