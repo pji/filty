@@ -94,6 +94,7 @@ def filter_inverse(a: np.ndarray) -> np.ndarray:
     return 1 - a
 
 
+@processes_by_grayscale_frame
 @will_square
 def filter_linear_to_polar(a: np.ndarray) -> np.ndarray:
     """Convert the linear coordinates of the image data to
@@ -105,13 +106,87 @@ def filter_linear_to_polar(a: np.ndarray) -> np.ndarray:
     return cv2.warpPolar(a, a.shape, center, max_radius, flags)
 
 
+@processes_by_grayscale_frame
+def filter_motion_blur(a: np.ndarray,
+                       amount: int,
+                       axis: int) -> np.ndarray:
+    """Perform a motion blur."""
+    kernel = np.zeros((amount, amount), float)
+    if axis == X:
+        y = int(amount // 2)
+        for x in range(amount):
+            kernel[y][x] = 1 / amount
+    if axis == Y:
+        x = int(amount // 2)
+        for y in range(amount):
+            kernel[y][x] = 1 / amount
+    return cv2.filter2D(a, -1, kernel)
+
+
+@processes_by_grayscale_frame
+def filter_pinch(a: np.ndarray,
+                 amount: float,
+                 radius: float,
+                 scale: tuple[float],
+                 offset: tuple[int]) -> np.ndarray:
+    """Distort an image to make it appear as though it is being
+    pinched or swelling.
+    """
+    # Set up for creating the maps.
+    center = tuple((n) / 2 + o for n, o in zip(a.shape, offset))
+    flex_x = np.zeros(a.shape, np.float32)
+    flex_y = np.zeros(a.shape, np.float32)
+
+    # Create a map of the distance from each pixel in the image to
+    # the center of the image.
+    indices = np.indices(a.shape)
+    y = indices[Y]
+    x = indices[X]
+    delta_y = scale[Y] * (y - center[Y])
+    delta_x = scale[X] * (x - center[X])
+    distance = delta_x ** 2 + delta_y ** 2
+
+    # Mask out the area covered by not within the radius of the effect.
+    r_mask = np.zeros(x.shape, bool)
+    r_mask[distance >= radius ** 2] = True
+    flex_x[r_mask] = x[r_mask]
+    flex_y[r_mask] = y[r_mask]
+
+    # Create maps with the barrel/pincushion formula.
+    pmask = np.zeros(x.shape, bool)
+    pmask[distance > 0.0] = True
+    pmask[r_mask] = False
+    factor = np.sin(np.pi * np.sqrt(distance) / radius / 2)
+    factor[factor > 0] = factor[factor > 0] ** -amount
+    factor[factor < 0] = -((-factor[factor < 0]) ** -amount)
+    flex_x[pmask] = factor[pmask] * delta_x[pmask] / scale[X] + center[X]
+    flex_y[pmask] = factor[pmask] * delta_y[pmask] / scale[Y] + center[Y]
+
+    flex_x[~pmask] = 1.0 * delta_x[~pmask] / scale[X] + center[X]
+    flex_y[~pmask] = 1.0 * delta_y[~pmask] / scale[Y] + center[Y]
+    
+    # Perform the pinch using the maps and return.
+    return cv2.remap(a, flex_x, flex_y, cv2.INTER_LINEAR)
+
+
+@processes_by_grayscale_frame
+@will_square
+def filter_polar_to_linear(a: np.ndarray) -> np.ndarray:
+    """Convert the polar coordinates of the image data to
+    linear coordinates.
+    """
+    center = tuple(n / 2 for n in a.shape)
+    max_radius = np.sqrt(sum(n ** 2 for n in center))
+    return cv2.linearPolar(a, center, max_radius, cv2.WARP_FILL_OUTLIERS)
+
+
 if __name__ == '__main__':
-    from tests.common import A, F, VIDEO_2_3_3
+    from tests.common import A, F, VIDEO_2_5_5
     from filty.utility import print_array
     
-    filter = filter_linear_to_polar
+    filter = filter_polar_to_linear
     kwargs = {
-        'a': A.copy(),
+        'a': VIDEO_2_5_5.copy(),
     }
     out = filter(**kwargs)
     print_array(out, 2)

@@ -387,7 +387,9 @@ class InverseTestCase(FilterTestCase):
 
 class LinearToPolarTestCase(FilterTestCase):
     def test_filter(self):
-        """Given image data, invert the colors of the image data."""
+        """Given image data, convert the linear coordinates to
+        polar coordinates.
+        """
         filter = f.filter_linear_to_polar
         exp = np.array([
             [0.0000, 0.2500, 0.0000, 0.0000, 0.0000],
@@ -397,3 +399,179 @@ class LinearToPolarTestCase(FilterTestCase):
             [0.5000, 0.7500, 1.0000, 0.7500, 1.0000],
         ], dtype=np.float32)
         self.run_test(filter, exp)
+
+    def test_filter_video(self):
+        """Convert coordinates for video."""
+        filter = f.filter_linear_to_polar
+        exp = np.array([
+            [
+                [0.0000, 0.2500, 0.0000, 0.0000, 0.0000],
+                [0.2500, 0.5000, 0.7500, 0.5000, 0.2500],
+                [0.2500, 0.7500, 1.0000, 0.7500, 0.5000],
+                [0.5000, 1.0000, 0.7500, 0.5000, 0.5000],
+                [0.5000, 0.7500, 1.0000, 0.7500, 1.0000],
+            ],
+            [
+                [0.0000, 0.7500, 1.0000, 1.0000, 1.0000],
+                [0.7500, 1.0000, 0.7500, 0.5000, 0.7500],
+                [0.7500, 0.7500, 0.5000, 0.2500, 0.5000],
+                [0.5000, 1.0000, 0.7500, 1.0000, 0.5000],
+                [0.5000, 0.7500, 1.0000, 0.7500, 0.5000],
+            ],
+        ], dtype=np.float32)
+        a = VIDEO_2_5_5.copy()
+        self.run_test(filter, exp, a)
+
+
+class MotionBlurTestCase(FilterTestCase):
+    def test_filter(self):
+        """Given image data, an amount, and a direction, perform a
+        motion blur on the image data.
+        """
+        filter = f.filter_motion_blur
+        exp = np.array([
+            [0.1250, 0.1250, 0.3750, 0.6250, 0.8750],
+            [0.3750, 0.3750, 0.6250, 0.8750, 0.8750],
+            [0.6250, 0.6250, 0.8750, 0.8750, 0.6250],
+            [0.8750, 0.8750, 0.8750, 0.6250, 0.3750],
+            [0.8750, 0.8750, 0.6250, 0.3750, 0.1250],
+        ], dtype=np.float32)
+        kwargs = {
+            'amount': 2,
+            'axis': f.X,
+        }
+        self.run_test(filter, exp, **kwargs)
+
+    def test_filter_vertical(self):
+        """The motion blur should be vertical when done on the
+        Y axis.
+        """
+        filter = f.filter_motion_blur
+        exp = np.array([
+            [0.1250, 0.3750, 0.6250, 0.8750, 0.8750],
+            [0.1250, 0.3750, 0.6250, 0.8750, 0.8750],
+            [0.3750, 0.6250, 0.8750, 0.8750, 0.6250],
+            [0.6250, 0.8750, 0.8750, 0.6250, 0.3750],
+            [0.8750, 0.8750, 0.6250, 0.3750, 0.1250],
+        ], dtype=np.float32)
+        kwargs = {
+            'amount': 2,
+            'axis': f.Y,
+        }
+        self.run_test(filter, exp, **kwargs)
+
+    def test_filter_video(self):
+        """The motion blur work on video.
+        """
+        filter = f.filter_motion_blur
+        exp = np.array([
+            [
+                [0.1250, 0.1250, 0.3750, 0.6250, 0.8750],
+                [0.3750, 0.3750, 0.6250, 0.8750, 0.8750],
+                [0.6250, 0.6250, 0.8750, 0.8750, 0.6250],
+                [0.8750, 0.8750, 0.8750, 0.6250, 0.3750],
+                [0.8750, 0.8750, 0.6250, 0.3750, 0.1250],
+            ],
+            [
+                [0.8750, 0.8750, 0.6250, 0.3750, 0.1250],
+                [0.8750, 0.8750, 0.8750, 0.6250, 0.3750],
+                [0.6250, 0.6250, 0.8750, 0.8750, 0.6250],
+                [0.3750, 0.3750, 0.6250, 0.8750, 0.8750],
+                [0.1250, 0.1250, 0.3750, 0.6250, 0.8750],
+            ],
+        ], dtype=np.float32)
+        a = VIDEO_2_5_5.copy()
+        kwargs = {
+            'amount': 2,
+            'axis': f.X,
+        }
+        self.run_test(filter, exp, a, **kwargs)
+
+
+class PinchTestCase(FilterTestCase):
+    def test_filter(self):
+        """Given image data, an amount of the pinch, a radius, a
+        scale, and an offset, perform a pinch on the image data.
+        """
+        filter = f.filter_pinch
+        exp = np.array([
+            [0.0000, 0.0859, 0.1465, 0.2441, 0.3438],
+            [0.0859, 0.2188, 0.4609, 0.8340, 0.3896],
+            [0.1465, 0.4609, 0.6719, 0.7500, 0.0713],
+            [0.2441, 0.8340, 0.7500, 0.1719, 0.0225],
+            [0.3438, 0.3896, 0.0713, 0.0225, 0.0000],
+        ], dtype=np.float32)
+        kwargs = {
+            'amount': 0.5,
+            'radius': 3.0,
+            'scale': (0.5, 0.5),
+            'offset': (0, 0, 0),
+        }
+        self.run_test(filter, exp, **kwargs)
+
+    def test_filter_video(self):
+        """Pinch should work on video.
+        """
+        filter = f.filter_pinch
+        exp = np.array([
+            [
+                [0.0000, 0.0859, 0.1465, 0.2441, 0.3438],
+                [0.0859, 0.2188, 0.4609, 0.8340, 0.3896],
+                [0.1465, 0.4609, 0.6719, 0.7500, 0.0713],
+                [0.2441, 0.8340, 0.7500, 0.1719, 0.0225],
+                [0.3438, 0.3896, 0.0713, 0.0225, 0.0000],
+            ],
+            [
+                [0.5166, 0.4141, 0.1660, 0.0684, 0.0000],
+                [0.4141, 0.8770, 0.6016, 0.2109, 0.0479],
+                [0.1660, 0.6016, 0.8872, 0.4219, 0.0537],
+                [0.0684, 0.2109, 0.4219, 0.8872, 0.1025],
+                [0.0000, 0.0479, 0.0537, 0.1025, 0.1914],
+            ],
+        ], dtype=np.float32)
+        a = VIDEO_2_5_5.copy()
+        kwargs = {
+            'amount': 0.5,
+            'radius': 3.0,
+            'scale': (0.5, 0.5),
+            'offset': (0, 0, 0),
+        }
+        self.run_test(filter, exp, a, **kwargs)
+
+
+class PolarToLinearTestCase(FilterTestCase):
+    def test_filter(self):
+        """Given image data, convert the polar coordinates to
+        linear coordinates.
+        """
+        filter = f.filter_polar_to_linear
+        exp = np.array([
+            [1.0000, 0.7500, 0.5000, 0.0000, 0.0000],
+            [1.0000, 0.5000, 0.2500, 0.0000, 0.0000],
+            [1.0000, 0.7500, 1.0000, 0.7500, 1.0000],
+            [1.0000, 1.0000, 0.7500, 0.5000, 0.2500],
+            [1.0000, 0.7500, 1.0000, 0.7500, 0.7500],
+        ], dtype=np.float32)
+        self.run_test(filter, exp)
+
+    def test_filter_video(self):
+        """Convert coordinates for video."""
+        filter = f.filter_polar_to_linear
+        exp = np.array([
+            [
+                [1.0000, 0.7500, 0.5000, 0.0000, 0.0000],
+                [1.0000, 0.5000, 0.2500, 0.0000, 0.0000],
+                [1.0000, 0.7500, 1.0000, 0.7500, 1.0000],
+                [1.0000, 1.0000, 0.7500, 0.5000, 0.2500],
+                [1.0000, 0.7500, 1.0000, 0.7500, 0.7500],
+            ],
+            [
+                [1.0000, 0.7500, 0.5000, 0.0000, 0.0000],
+                [1.0000, 1.0000, 0.7500, 0.0000, 0.0000],
+                [1.0000, 0.7500, 0.5000, 0.2500, 0.0000],
+                [1.0000, 1.0000, 0.7500, 1.0000, 0.7500],
+                [1.0000, 0.7500, 0.5000, 0.2500, 0.2500],
+            ],
+        ], dtype=np.float32)
+        a = VIDEO_2_5_5.copy()
+        self.run_test(filter, exp, a)
