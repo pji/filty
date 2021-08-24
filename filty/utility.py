@@ -10,6 +10,10 @@ from typing import Callable
 import numpy as np
 
 
+# Useful constants.
+X, Y, Z = -1, -2, -3
+
+
 # Decorators.
 def processes_by_grayscale_frame(fn:Callable) -> Callable:
     """If the given array is more than two dimensions, iterate
@@ -49,6 +53,110 @@ def uses_uint8(fn: Callable) -> Callable:
 
 
 # Convenience utilities.
+def bilinear_interpolation(a: np.ndarray, factor: float) -> np.ndarray:
+    """Resize an two dimensional array using trilinear
+    interpolation.
+
+    :param a: The array to resize. The array is expected to have at
+        least two dimensions.
+    :param factor: The amount to resize the array. Given how the
+        interpolation works, you probably don't get great results
+        with factor less than or equal to .5. Consider multiple
+        passes of interpolation with larger factors in those cases.
+    :return: A :class:ndarray object.
+    :rtype: numpy.ndarray
+    """
+    # Return the array unchanged if the array won't be magnified.
+    if factor == 1:
+        return a
+
+    # Perform a defensive copy of the original array to avoid
+    # unexpected side effects.
+    a = a.copy()
+
+    # Since we are magnifying the given array, the new array's shape
+    # will increase by the magnification factor.
+    mag_size = tuple(int(s * factor) for s in a.shape)
+
+    # Map out the relationship between the old space and the
+    # new space.
+    indices = np.indices(mag_size)
+    if factor > 1:
+        whole = (indices // factor).astype(int)
+        parts = (indices / factor - whole).astype(float)
+    else:
+        new_ends = [s - 1 for s in mag_size]
+        old_ends = [s - 1 for s in a.shape]
+        true_factors = [n / o for n, o in zip(new_ends, old_ends)]
+        for i in range(len(true_factors)):
+            if true_factors[i] == 0:
+                true_factors[i] = .5
+        whole = indices.copy()
+        parts = indices.copy()
+        for i in Y, X:
+            whole[i] = (indices[i] // true_factors[i]).astype(int)
+            parts[i] = (indices[i] / true_factors[i] - whole[i]).astype(float)
+    del indices
+
+    # Trilinear interpolation determines the value of a new pixel by
+    # comparing the values of the eight old pixels that surround it.
+    # The hashes are the keys to the dictionary that contains those
+    # old pixel values. The key indicates the position of the pixel
+    # on each axis, with one meaning the position is ahead of the
+    # new pixel, and zero meaning the position is behind it.
+    hashes = [f'{n:>02b}'[::-1] for n in range(2 ** 2)]
+    hash_table = {}
+
+    # The original array needs to be made one dimensional for the
+    # numpy.take operation that will occur as we build the tables.
+    raveled = np.ravel(a)
+
+    # Build the table that contains the old pixel values to
+    # interpolate.
+    for hash in hashes:
+        hash_whole = whole.copy()
+
+        # Use the hash key to adjust the which old pixel we are
+        # looking at.
+        for axis in Y, X:
+            if hash[axis] == '1':
+                hash_whole[axis] += 1
+
+                # Handle the pixels that were pushed off the far
+                # edge of the original array by giving them the
+                # value of the last pixel along that axis in the
+                # original array.
+                m = np.zeros(hash_whole[axis].shape, dtype=bool)
+                m[hash_whole[axis] >= a.shape[axis]] = True
+                hash_whole[axis][m] = a.shape[axis] - 1
+
+        # Since numpy.take() only works in one dimension, we need to
+        # map the three dimensional indices of the original array to
+        # the one dimensional indices used by the raveled version of
+        # that array.
+        raveled_indices = hash_whole[Y] * a.shape[X]
+        raveled_indices += hash_whole[X]
+
+        # Get the value of the pixel in the original array.
+        hash_table[hash] = np.take(raveled, raveled_indices.astype(int))
+
+    # Once the hash table has been built, clean up the working arrays
+    # in case we are running short on memory.
+    else:
+        del hash_whole, raveled_indices, whole
+
+    # Everything before this was to set up the interpolation. Now that
+    # it's set up, we perform the interpolation. Since we are doing
+    # this across three dimensions, it's a three stage process. Stage
+    # one is along the X axis.
+    x1 = lerp(hash_table['00'], hash_table['01'], parts[X])
+    x2 = lerp(hash_table['10'], hash_table['11'], parts[X])
+
+    # And stage three is along the Z axis. Since this is the last step
+    # we can just return the result.
+    return lerp(x1, x2, parts[Y])
+
+
 def grayscale_to_rgb(a: np.ndarray) -> np.ndarray:
     """Convert a grayscale image to RGB."""
     new_shape = (*a.shape, 3)
@@ -56,6 +164,29 @@ def grayscale_to_rgb(a: np.ndarray) -> np.ndarray:
     for channel in range(3):
         new_a[..., channel] = a
     return new_a
+
+
+def lerp(a: np.ndarray, b: np.ndarray, x: np.ndarray) -> np.ndarray:
+    """Perform a linear interpolation on the values of two arrays
+
+    :param a: The "left" values.
+    :param b: The "right" values.
+    :param x: An array of how close the location of the final value
+        should be to the "left" value.
+    :return: A :class:ndarray object
+    :rtype: numpy.ndarray
+
+    Usage::
+
+        >>> import numpy as np
+        >>>
+        >>> a = np.array([1, 2, 3])
+        >>> b = np.array([3, 4, 5])
+        >>> x = np.array([.5, .5, .5])
+        >>> lerp(a, b, x)
+        array([2., 3., 4.])
+    """
+    return a.astype(float) * (1 - x.astype(float)) + b.astype(float) * x
 
 
 def print_array(a: np.ndarray, depth: int = 0, color: bool = True) -> None:
@@ -73,6 +204,153 @@ def print_array(a: np.ndarray, depth: int = 0, color: bool = True) -> None:
             tmp = '{}'
         nums = [tmp.format(n) for n in a]
         print(' ' * (4 * depth) + '[' + ', '.join(nums) + '],')
+
+
+def trilinear_interpolation(a: np.ndarray, factor: float) -> np.ndarray:
+    """Resize an three dimensional array using trilinear
+    interpolation.
+
+    :param a: The array to resize. The array is expected to have at
+        least three dimensions.
+    :param factor: The amount to resize the array. Given how the
+        interpolation works, you probably don't get great results
+        with factor less than or equal to .5. Consider multiple
+        passes of interpolation with larger factors in those cases.
+    :return: A :class:ndarray object.
+    :rtype: numpy.ndarray
+
+    Usage::
+
+        >>> import numpy as np
+        >>>
+        >>> a = np.array([
+        ...     [
+        ...             [0, 1],
+        ...             [1, 0],
+        ...     ],
+        ...     [
+        ...             [1, 0],
+        ...             [0, 1],
+        ...     ],
+        ... ])
+        >>> trilinear_interpolation(a, 2)
+        array([[[0. , 0.5, 1. , 1. ],
+                [0.5, 0.5, 0.5, 0.5],
+                [1. , 0.5, 0. , 0. ],
+                [1. , 0.5, 0. , 0. ]],
+        <BLANKLINE>
+               [[0.5, 0.5, 0.5, 0.5],
+                [0.5, 0.5, 0.5, 0.5],
+                [0.5, 0.5, 0.5, 0.5],
+                [0.5, 0.5, 0.5, 0.5]],
+        <BLANKLINE>
+               [[1. , 0.5, 0. , 0. ],
+                [0.5, 0.5, 0.5, 0.5],
+                [0. , 0.5, 1. , 1. ],
+                [0. , 0.5, 1. , 1. ]],
+        <BLANKLINE>
+               [[1. , 0.5, 0. , 0. ],
+                [0.5, 0.5, 0.5, 0.5],
+                [0. , 0.5, 1. , 1. ],
+                [0. , 0.5, 1. , 1. ]]])
+    """
+    # Return the array unchanged if the array won't be magnified.
+    if factor == 1:
+        return a
+
+    # Perform a defensive copy of the original array to avoid
+    # unexpected side effects.
+    a = a.copy()
+
+    # Since we are magnifying the given array, the new array's shape
+    # will increase by the magnification factor.
+    mag_size = tuple(int(s * factor) for s in a.shape)
+
+    # Map out the relationship between the old space and the
+    # new space.
+    indices = np.indices(mag_size)
+    if factor > 1:
+        whole = (indices // factor).astype(int)
+        parts = (indices / factor - whole).astype(float)
+    else:
+        new_ends = [s - 1 for s in mag_size]
+        old_ends = [s - 1 for s in a.shape]
+        true_factors = [n / o for n, o in zip(new_ends, old_ends)]
+        for i in range(len(true_factors)):
+            if true_factors[i] == 0:
+                true_factors[i] = .5
+        whole = indices.copy()
+        parts = indices.copy()
+        for i in Z, Y, X:
+            whole[i] = (indices[i] // true_factors[i]).astype(int)
+            parts[i] = (indices[i] / true_factors[i] - whole[i]).astype(float)
+    del indices
+
+    # Trilinear interpolation determines the value of a new pixel by
+    # comparing the values of the eight old pixels that surround it.
+    # The hashes are the keys to the dictionary that contains those
+    # old pixel values. The key indicates the position of the pixel
+    # on each axis, with one meaning the position is ahead of the
+    # new pixel, and zero meaning the position is behind it.
+    hashes = [f'{n:>03b}'[::-1] for n in range(2 ** 3)]
+    hash_table = {}
+
+    # The original array needs to be made one dimensional for the
+    # numpy.take operation that will occur as we build the tables.
+    raveled = np.ravel(a)
+
+    # Build the table that contains the old pixel values to
+    # interpolate.
+    for hash in hashes:
+        hash_whole = whole.copy()
+
+        # Use the hash key to adjust the which old pixel we are
+        # looking at.
+        for axis in Z, Y, X:
+            if hash[axis] == '1':
+                hash_whole[axis] += 1
+
+                # Handle the pixels that were pushed off the far
+                # edge of the original array by giving them the
+                # value of the last pixel along that axis in the
+                # original array.
+                m = np.zeros(hash_whole[axis].shape, dtype=bool)
+                m[hash_whole[axis] >= a.shape[axis]] = True
+                hash_whole[axis][m] = a.shape[axis] - 1
+
+        # Since numpy.take() only works in one dimension, we need to
+        # map the three dimensional indices of the original array to
+        # the one dimensional indices used by the raveled version of
+        # that array.
+        raveled_indices = hash_whole[Z] * a.shape[Y] * a.shape[X]
+        raveled_indices += hash_whole[Y] * a.shape[X]
+        raveled_indices += hash_whole[X]
+
+        # Get the value of the pixel in the original array.
+        hash_table[hash] = np.take(raveled, raveled_indices.astype(int))
+
+    # Once the hash table has been built, clean up the working arrays
+    # in case we are running short on memory.
+    else:
+        del hash_whole, raveled_indices, whole
+
+    # Everything before this was to set up the interpolation. Now that
+    # it's set up, we perform the interpolation. Since we are doing
+    # this across three dimensions, it's a three stage process. Stage
+    # one is along the X axis.
+    x1 = lerp(hash_table['000'], hash_table['001'], parts[X])
+    x2 = lerp(hash_table['010'], hash_table['011'], parts[X])
+    x3 = lerp(hash_table['100'], hash_table['101'], parts[X])
+    x4 = lerp(hash_table['110'], hash_table['111'], parts[X])
+
+    # Stage two is along the Y axis.
+    y1 = lerp(x1, x2, parts[Y])
+    y2 = lerp(x3, x4, parts[Y])
+    del x1, x2, x3, x4
+
+    # And stage three is along the Z axis. Since this is the last step
+    # we can just return the result.
+    return lerp(y1, y2, parts[Z])
 
 
 # Color constants.

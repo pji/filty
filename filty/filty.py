@@ -9,11 +9,9 @@ from PIL import Image, ImageOps
 import numpy as np
 
 from filty.utility import (grayscale_to_rgb, uses_uint8, COLOR,
-                           processes_by_grayscale_frame)
-
-
-# Useful constants.
-X, Y, Z = -1, -2, -3
+                           processes_by_grayscale_frame,
+                           trilinear_interpolation, X, Y, Z,
+                           bilinear_interpolation)
 
 
 # Image filter functions.
@@ -84,14 +82,21 @@ def filter_flip(a: np.ndarray, axis: int) -> np.ndarray:
     return np.flip(a, axis)
 
 
+def filter_grow(a: np.ndarray, factor: float) -> np.ndarray:
+    """Increase the size of an image."""
+    if len(a.shape) == 2:
+        return bilinear_interpolation(a, factor)
+    return trilinear_interpolation(a, factor)
+
+
 if __name__ == '__main__':
-    from tests.common import A, VIDEO_2_5_5
+    from tests.common import A, F, VIDEO_2_3_3
     from filty.utility import print_array
     
-    filter = filter_gaussian_blur
+    filter = filter_grow
     kwargs = {
-        'a': VIDEO_2_5_5.copy(),
-        'sigma': 0.5,
+        'a': F.copy(),
+        'factor': 2,
     }
     out = filter(**kwargs)
     print_array(out, 2)
