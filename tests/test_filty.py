@@ -17,7 +17,7 @@ class FilterTestCase(ArrayTestCase):
         """Run a basic test case for a filter."""
         # Test data and state.
         if a is None:
-            a = A
+            a = A.copy()
 
         # Run test.
         act = filter(a, *args, **kwargs)
@@ -369,3 +369,31 @@ class GrowTestCase(FilterTestCase):
             'factor': 2,
         }
         self.run_test(filter, exp, a, **kwarg)
+
+
+class InverseTestCase(FilterTestCase):
+    def test_filter(self):
+        """Given image data, invert the colors of the image data."""
+        filter = f.filter_inverse
+        exp = np.array([
+            [1.0000, 0.7500, 0.5000, 0.2500, 0.0000],
+            [0.7500, 0.5000, 0.2500, 0.0000, 0.2500],
+            [0.5000, 0.2500, 0.0000, 0.2500, 0.5000],
+            [0.2500, 0.0000, 0.2500, 0.5000, 0.7500],
+            [0.0000, 0.2500, 0.5000, 0.7500, 1.0000],
+        ], dtype=np.float32)
+        self.run_test(filter, exp)
+
+
+class LinearToPolarTestCase(FilterTestCase):
+    def test_filter(self):
+        """Given image data, invert the colors of the image data."""
+        filter = f.filter_linear_to_polar
+        exp = np.array([
+            [0.0000, 0.2500, 0.0000, 0.0000, 0.0000],
+            [0.2500, 0.5000, 0.7500, 0.5000, 0.2500],
+            [0.2500, 0.7500, 1.0000, 0.7500, 0.5000],
+            [0.5000, 1.0000, 0.7500, 0.5000, 0.5000],
+            [0.5000, 0.7500, 1.0000, 0.7500, 1.0000],
+        ], dtype=np.float32)
+        self.run_test(filter, exp)

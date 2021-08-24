@@ -11,7 +11,7 @@ import numpy as np
 from filty.utility import (grayscale_to_rgb, uses_uint8, COLOR,
                            processes_by_grayscale_frame,
                            trilinear_interpolation, X, Y, Z,
-                           bilinear_interpolation)
+                           bilinear_interpolation, will_square)
 
 
 # Image filter functions.
@@ -89,14 +89,29 @@ def filter_grow(a: np.ndarray, factor: float) -> np.ndarray:
     return trilinear_interpolation(a, factor)
 
 
+def filter_inverse(a: np.ndarray) -> np.ndarray:
+    """Inverse the colors of an image."""
+    return 1 - a
+
+
+@will_square
+def filter_linear_to_polar(a: np.ndarray) -> np.ndarray:
+    """Convert the linear coordinates of the image data to
+    polar coordinates.
+    """
+    center = tuple(n / 2 for n in a.shape)
+    max_radius = np.sqrt(sum(n ** 2 for n in center))
+    flags = cv2.WARP_POLAR_LINEAR + cv2.WARP_INVERSE_MAP
+    return cv2.warpPolar(a, a.shape, center, max_radius, flags)
+
+
 if __name__ == '__main__':
     from tests.common import A, F, VIDEO_2_3_3
     from filty.utility import print_array
     
-    filter = filter_grow
+    filter = filter_linear_to_polar
     kwargs = {
-        'a': F.copy(),
-        'factor': 2,
+        'a': A.copy(),
     }
     out = filter(**kwargs)
     print_array(out, 2)

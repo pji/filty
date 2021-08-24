@@ -12,6 +12,116 @@ import numpy as np
 
 # Useful constants.
 X, Y, Z = -1, -2, -3
+COLOR = {
+    # Don't colorize.
+    '': [],
+
+    # Grayscale
+    'a': ['hsv(0, 0%, 100%)', 'hsv(0, 0%, 0%)'],
+    'A': ['hsl(0, 0%, 75%)', 'hsl(0, 0%, 25%)'],
+
+    # Electric blue.
+    'b': ['hsv(200, 100%, 100%)', 'hsv(200, 100%, 0%)'],
+    'B': ['hsl(200, 100%, 75%)', 'hsl(200, 100%, 25%)'],
+
+    'bw': ['hsv(205, 100%, 100%)', 'hsv(200, 100%, 0%)'],
+    'Bw': ['hsl(205, 100%, 75%)', 'hsl(200, 100%, 25%)'],
+
+    'bk': ['hsv(200, 30%, 20%)', 'hsv(200, 30%, 0%)'],
+    'BK': ['hsl(200, 30%, 30%)', 'hsl(200, 30%, 10%)'],
+
+    # Cream
+    'c': ['hsv(35, 100%, 100%)', 'hsv(35, 100%, 0%)'],
+    'C': ['hsl(35, 100%, 80%)', 'hsl(35, 100%, 25%)'],
+
+    'cw': ['hsv(30, 100%, 100%)', 'hsv(35, 100%, 0%)'],
+    'Cw': ['hsl(30, 100%, 80%)', 'hsl(35, 100%, 25%)'],
+
+    'cc': ['hsv(40, 100%, 100%)', 'hsv(35, 100%, 0%)'],
+    'Cc': ['hsl(40, 100%, 80%)', 'hsl(35, 100%, 25%)'],
+
+    'ck': ['hsv(35, 30%, 20%)', 'hsv(35, 30%, 0%)'],
+    'CK': ['hsl(35, 30%, 30%)', 'hsl(35, 30%, 10%)'],
+
+    # Dark.
+    'k': ['hsv(220, 30%, 20%)', 'hsv(220, 30%, 0%)'],
+    'K': ['hsl(220, 30%, 30%)', 'hsl(220, 30%, 10%)'],
+
+    'kk': ['hsv(220, 30%, 10%)', 'hsv(220, 30%, 0%)'],
+    'KK': ['hsl(220, 30%, 15%)', 'hsl(220, 30%, 5%)'],
+
+    # Ectoplasmic teal.
+    'e': ["hsv(190, 50%, 100%)", "hsv(190, 100%, 0%)"],
+    'E': ["hsl(190, 50%, 100%)", "hsl(190, 100%, 30%)"],
+
+    # Electric green.
+    'g': ['hsv(90, 100%, 100%)', 'hsv(90, 100%, 0%)'],
+    'G': ['hsl(90, 100%, 75%)', 'hsl(90, 100%, 25%)'],
+
+    'gk': ['hsv(90, 30%, 20%)', 'hsv(90, 30%, 0%)'],
+    'GK': ['hsl(90, 30%, 30%)', 'hsl(90, 30%, 10%)'],
+
+    # Slate.
+    'l': ['hsv(220, 30%, 50%)', 'hsv(220, 30%, 0%)'],
+    'L': ['hsl(220, 30%, 75%)', 'hsl(220, 30%, 25%)'],
+
+    # Electric pink.
+    'p': ['hsv(320, 100%, 100%)', 'hsv(320, 100%, 0%)'],
+    'P': ['hsl(320, 100%, 75%)', 'hsl(320, 100%, 25%)'],
+
+    # Royal purple.
+    'r': ['hsv(280, 100%, 100%)', 'hsv(280, 100%, 0%)'],
+    'R': ['hsl(280, 100%, 75%)', 'hsl(280, 100%, 25%)'],
+
+    'rw': ['hsv(285, 100%, 100%)', 'hsv(280, 100%, 0%)'],
+    'Rw': ['hsl(285, 100%, 75%)', 'hsl(280, 100%, 25%)'],
+
+    # Scarlet.
+    's': ['hsv(350, 100%, 100%)', 'hsv(10, 100%, 0%)'],
+    'S': ['hsl(350, 100%, 75%)', 'hsl(10, 100%, 25%)'],
+
+    'sw': ['hsv(0, 100%, 100%)', 'hsv(10, 100%, 0%)'],
+    'Sw': ['hsl(0, 100%, 75%)', 'hsl(10, 100%, 25%)'],
+
+    'sk': ['hsv(350, 30%, 20%)', 'hsv(10, 30%, 0%)'],
+    'SK': ['hsl(350, 30%, 30%)', 'hsl(10, 30%, 10%)'],
+
+    # White.
+    'w': ['hsv(0, 0%, 100%)', 'hsv(0, 0%, 0%)'],
+    'W': ['hsl(0, 0%, 75%)', 'hsl(0, 0%, 25%)'],
+
+    # Hue templates.
+    't': ['hsv({}, 100%, 100%)', 'hsv({}, 100%, 0%)'],
+    'T': ['hsl({}, 100%, 75%)', 'hsl({}, 100%, 25%)'],
+}
+
+
+# Color functions.
+def grayscale_to_rgb(a: np.ndarray) -> np.ndarray:
+    """Convert a grayscale image to RGB."""
+    new_shape = (*a.shape, 3)
+    new_a = np.zeros(new_shape, dtype=a.dtype)
+    for channel in range(3):
+        new_a[..., channel] = a
+    return new_a
+
+
+# Debugging functions.
+def print_array(a: np.ndarray, depth: int = 0, color: bool = True) -> None:
+    """Write the values of the given array to stdout."""
+    if len(a.shape) > 1:
+        print(' ' * (4 * depth) + '[')
+        for i in range(a.shape[0]):
+            print_array(a[i], depth + 1, color)
+        print(' ' * (4 * depth) + '],')
+
+    else:
+        if a.dtype == np.float32 or a.dtype == np.float64:
+            tmp = '{:>1.4f}'
+        else:
+            tmp = '{}'
+        nums = [tmp.format(n) for n in a]
+        print(' ' * (4 * depth) + '[' + ', '.join(nums) + '],')
 
 
 # Decorators.
@@ -52,7 +162,43 @@ def uses_uint8(fn: Callable) -> Callable:
     return wrapper
 
 
-# Convenience utilities.
+def will_square(fn: Callable) -> Callable:
+    """The array needs to have equal sized X and Y axes. The result
+    will be sliced to the size of the original array.
+    """
+    @wraps(fn)
+    def wrapper(a: np.ndarray, *args, **kwargs) -> np.ndarray:
+        # Determine if the Y and X axes aren't square.
+        old_size = None
+        if a.shape[X] != a.shape[Y]:
+            old_size = a.shape
+            largest = max(a.shape[Y:])
+            new_size = (*a.shape[:Y], largest, largest)
+            new_a = np.zeros(new_size, dtype=a.dtype)
+            x_start = (largest - old_size[X]) // 2
+            x_end = x_start + old_size[X]
+            y_start = (largest - old_size[Y]) // 2
+            y_end = y_start + old_size[Y]
+            new_a[..., y_start:y_end, x_start:x_end] = a
+            a = new_a
+            del new_a
+        
+        # Send to the wrapped function.
+        a = fn(a, *args, **kwargs)
+        
+        # Resize result back to the size of the original image if
+        # needed before returning.
+        if old_size:
+            y_start = (a.shape[Y] - old_size[Y]) // 2
+            y_end = y_start + old_size[Y]
+            x_start = (a.shape[X] - old_size[X]) // 2
+            x_end = x_start + old_size[X]
+            a = a[..., y_start:y_end, x_start:x_end]
+        return a            
+    return wrapper
+
+
+# Interpolation functions.
 def bilinear_interpolation(a: np.ndarray, factor: float) -> np.ndarray:
     """Resize an two dimensional array using trilinear
     interpolation.
@@ -157,15 +303,6 @@ def bilinear_interpolation(a: np.ndarray, factor: float) -> np.ndarray:
     return lerp(x1, x2, parts[Y])
 
 
-def grayscale_to_rgb(a: np.ndarray) -> np.ndarray:
-    """Convert a grayscale image to RGB."""
-    new_shape = (*a.shape, 3)
-    new_a = np.zeros(new_shape, dtype=a.dtype)
-    for channel in range(3):
-        new_a[..., channel] = a
-    return new_a
-
-
 def lerp(a: np.ndarray, b: np.ndarray, x: np.ndarray) -> np.ndarray:
     """Perform a linear interpolation on the values of two arrays
 
@@ -187,23 +324,6 @@ def lerp(a: np.ndarray, b: np.ndarray, x: np.ndarray) -> np.ndarray:
         array([2., 3., 4.])
     """
     return a.astype(float) * (1 - x.astype(float)) + b.astype(float) * x
-
-
-def print_array(a: np.ndarray, depth: int = 0, color: bool = True) -> None:
-    """Write the values of the given array to stdout."""
-    if len(a.shape) > 1:
-        print(' ' * (4 * depth) + '[')
-        for i in range(a.shape[0]):
-            print_array(a[i], depth + 1, color)
-        print(' ' * (4 * depth) + '],')
-
-    else:
-        if a.dtype == np.float32 or a.dtype == np.float64:
-            tmp = '{:>1.4f}'
-        else:
-            tmp = '{}'
-        nums = [tmp.format(n) for n in a]
-        print(' ' * (4 * depth) + '[' + ', '.join(nums) + '],')
 
 
 def trilinear_interpolation(a: np.ndarray, factor: float) -> np.ndarray:
@@ -352,87 +472,3 @@ def trilinear_interpolation(a: np.ndarray, factor: float) -> np.ndarray:
     # we can just return the result.
     return lerp(y1, y2, parts[Z])
 
-
-# Color constants.
-COLOR = {
-    # Don't colorize.
-    '': [],
-
-    # Grayscale
-    'a': ['hsv(0, 0%, 100%)', 'hsv(0, 0%, 0%)'],
-    'A': ['hsl(0, 0%, 75%)', 'hsl(0, 0%, 25%)'],
-
-    # Electric blue.
-    'b': ['hsv(200, 100%, 100%)', 'hsv(200, 100%, 0%)'],
-    'B': ['hsl(200, 100%, 75%)', 'hsl(200, 100%, 25%)'],
-
-    'bw': ['hsv(205, 100%, 100%)', 'hsv(200, 100%, 0%)'],
-    'Bw': ['hsl(205, 100%, 75%)', 'hsl(200, 100%, 25%)'],
-
-    'bk': ['hsv(200, 30%, 20%)', 'hsv(200, 30%, 0%)'],
-    'BK': ['hsl(200, 30%, 30%)', 'hsl(200, 30%, 10%)'],
-
-    # Cream
-    'c': ['hsv(35, 100%, 100%)', 'hsv(35, 100%, 0%)'],
-    'C': ['hsl(35, 100%, 80%)', 'hsl(35, 100%, 25%)'],
-
-    'cw': ['hsv(30, 100%, 100%)', 'hsv(35, 100%, 0%)'],
-    'Cw': ['hsl(30, 100%, 80%)', 'hsl(35, 100%, 25%)'],
-
-    'cc': ['hsv(40, 100%, 100%)', 'hsv(35, 100%, 0%)'],
-    'Cc': ['hsl(40, 100%, 80%)', 'hsl(35, 100%, 25%)'],
-
-    'ck': ['hsv(35, 30%, 20%)', 'hsv(35, 30%, 0%)'],
-    'CK': ['hsl(35, 30%, 30%)', 'hsl(35, 30%, 10%)'],
-
-    # Dark.
-    'k': ['hsv(220, 30%, 20%)', 'hsv(220, 30%, 0%)'],
-    'K': ['hsl(220, 30%, 30%)', 'hsl(220, 30%, 10%)'],
-
-    'kk': ['hsv(220, 30%, 10%)', 'hsv(220, 30%, 0%)'],
-    'KK': ['hsl(220, 30%, 15%)', 'hsl(220, 30%, 5%)'],
-
-    # Ectoplasmic teal.
-    'e': ["hsv(190, 50%, 100%)", "hsv(190, 100%, 0%)"],
-    'E': ["hsl(190, 50%, 100%)", "hsl(190, 100%, 30%)"],
-
-    # Electric green.
-    'g': ['hsv(90, 100%, 100%)', 'hsv(90, 100%, 0%)'],
-    'G': ['hsl(90, 100%, 75%)', 'hsl(90, 100%, 25%)'],
-
-    'gk': ['hsv(90, 30%, 20%)', 'hsv(90, 30%, 0%)'],
-    'GK': ['hsl(90, 30%, 30%)', 'hsl(90, 30%, 10%)'],
-
-    # Slate.
-    'l': ['hsv(220, 30%, 50%)', 'hsv(220, 30%, 0%)'],
-    'L': ['hsl(220, 30%, 75%)', 'hsl(220, 30%, 25%)'],
-
-    # Electric pink.
-    'p': ['hsv(320, 100%, 100%)', 'hsv(320, 100%, 0%)'],
-    'P': ['hsl(320, 100%, 75%)', 'hsl(320, 100%, 25%)'],
-
-    # Royal purple.
-    'r': ['hsv(280, 100%, 100%)', 'hsv(280, 100%, 0%)'],
-    'R': ['hsl(280, 100%, 75%)', 'hsl(280, 100%, 25%)'],
-
-    'rw': ['hsv(285, 100%, 100%)', 'hsv(280, 100%, 0%)'],
-    'Rw': ['hsl(285, 100%, 75%)', 'hsl(280, 100%, 25%)'],
-
-    # Scarlet.
-    's': ['hsv(350, 100%, 100%)', 'hsv(10, 100%, 0%)'],
-    'S': ['hsl(350, 100%, 75%)', 'hsl(10, 100%, 25%)'],
-
-    'sw': ['hsv(0, 100%, 100%)', 'hsv(10, 100%, 0%)'],
-    'Sw': ['hsl(0, 100%, 75%)', 'hsl(10, 100%, 25%)'],
-
-    'sk': ['hsv(350, 30%, 20%)', 'hsv(10, 30%, 0%)'],
-    'SK': ['hsl(350, 30%, 30%)', 'hsl(10, 30%, 10%)'],
-
-    # White.
-    'w': ['hsv(0, 0%, 100%)', 'hsv(0, 0%, 0%)'],
-    'W': ['hsl(0, 0%, 75%)', 'hsl(0, 0%, 25%)'],
-
-    # Hue templates.
-    't': ['hsv({}, 100%, 100%)', 'hsv({}, 100%, 0%)'],
-    'T': ['hsl({}, 100%, 75%)', 'hsl({}, 100%, 25%)'],
-}
