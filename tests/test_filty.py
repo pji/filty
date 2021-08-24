@@ -257,3 +257,49 @@ class FlipTestCase(FilterTestCase):
             'axis': f.Z,
         }
         self.run_test(filter, exp, a, **kwarg)
+
+
+class GaussianBlurTestCase(FilterTestCase):
+    def test_filter(self):
+        """Given image data and a sigma, perform a gaussian blur
+        on the image data.
+        """
+        filter = f.filter_gaussian_blur
+        exp = np.array([
+            [0.1070, 0.3036, 0.5534, 0.7918, 0.9158],
+            [0.3036, 0.5002, 0.7442, 0.9046, 0.7918],
+            [0.5534, 0.7442, 0.9044, 0.7442, 0.5534],
+            [0.7918, 0.9046, 0.7442, 0.5002, 0.3036],
+            [0.9158, 0.7918, 0.5534, 0.3036, 0.1070],
+        ], dtype=np.float32)
+        kwarg = {
+            'sigma': 0.5,
+        }
+        self.run_test(filter, exp, **kwarg)
+
+    def test_blur_video(self):
+        """Given image data and a sigma, perform a gaussian blur
+        on the image data.
+        """
+        filter = f.filter_gaussian_blur
+        exp = np.array([
+            [
+                [0.2436, 0.4099, 0.5535, 0.6968, 0.7564],
+                [0.3565, 0.5952, 0.7500, 0.8516, 0.6435],
+                [0.5000, 0.7499, 0.9465, 0.7499, 0.5000],
+                [0.6435, 0.8516, 0.7500, 0.5952, 0.3565],
+                [0.7564, 0.6968, 0.5535, 0.4099, 0.2436],
+            ],
+            [
+                [0.7564, 0.6968, 0.5535, 0.4099, 0.2436],
+                [0.6435, 0.8516, 0.7500, 0.5952, 0.3565],
+                [0.5000, 0.7499, 0.9465, 0.7499, 0.5000],
+                [0.3565, 0.5952, 0.7500, 0.8516, 0.6435],
+                [0.2436, 0.4099, 0.5535, 0.6968, 0.7564],
+            ],
+        ], dtype=np.float32)
+        a = VIDEO_2_5_5.copy()
+        kwarg = {
+            'sigma': 0.5,
+        }
+        self.run_test(filter, exp, a, **kwarg)

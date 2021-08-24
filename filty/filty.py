@@ -74,6 +74,11 @@ def filter_contrast(a: np.ndarray) -> np.ndarray:
     return a
 
 
+def filter_gaussian_blur(a: np.ndarray, sigma: float) -> np.ndarray:
+    """Perform a gaussian blur."""
+    return cv2.GaussianBlur(a, (0, 0), sigma, sigma, 0)
+
+
 def filter_flip(a: np.ndarray, axis: int) -> np.ndarray:
     """Flip the image around an axis."""
     return np.flip(a, axis)
@@ -83,10 +88,10 @@ if __name__ == '__main__':
     from tests.common import A, VIDEO_2_5_5
     from filty.utility import print_array
     
-    filter = filter_flip
+    filter = filter_gaussian_blur
     kwargs = {
         'a': VIDEO_2_5_5.copy(),
-        'axis': Z,
+        'sigma': 0.5,
     }
     out = filter(**kwargs)
     print_array(out, 2)
