@@ -186,7 +186,28 @@ def filter_ripple(a: np.ndarray,
                   amp: tuple[float],
                   distaxis: tuple[int],
                   offset: tuple[float] = (0, 0, 0)) -> np.ndarray:
-    """Perform a ripple distortion."""
+    """Perform a ripple distortion.
+
+    :param a: The image data to ripple.
+    :param wave: The distance between peaks in the distortion.
+        There needs to be one value in the sequence per dimension
+        in the image.
+    :param amp: The amount of change caused by each ripple. There
+        needs to be one value in the sequence per dimension in the
+        image.
+    :param distaxis: Whether the distortion should be along the
+        same axis being distorted, causing the pattern to bunch up
+        like it is rippling, or along a different axis, causing the
+        pattern to wave like it's the cross-section of a wave. The
+        value "cross" uses different axis. By convention, use "same"
+        or an empty string to use the same axis.
+    :param offset: (Optional.) The amount to offset the location
+        of the ripples in the image. There needs to be one value
+        in the sequence per dimension in the image. The default
+        value for all dimensions is zero.
+    :return: An array of image data.
+    :rtype: A :class:numpy.ndarray object.
+    """
     # Map out the volume of the given image and make sure everything is
     # in float32 to keep the cv2.remap function happy.
     flex = np.indices(a.shape, np.float32)
@@ -210,17 +231,32 @@ def filter_ripple(a: np.ndarray,
     return cv2.remap(a, flex_x, flex_y, cv2.INTER_LINEAR)
 
 
+def filter_rotate_90(a: np.ndarray, direction: str = 'cw') -> np.ndarray:
+    """Rotate the data 90° around the Z axis.
+    
+    :param a: Image data.
+    :param direction: (Optional.) Whether to rotate the data
+        clockwise or counter clockwise.
+    :returns: An array of image data.
+    :rtype: A :class:numpy.ndarray object.
+    """
+    spin = -1
+    if (direction == 'ccw'
+            or direction == 'counter clockwise'
+            or direction == 'l'
+            or direction == 'left'):
+        spin = 1
+    return np.rot90(a, spin, (Y, X))
+
+
 if __name__ == '__main__':
-    from tests.common import A, F, VIDEO_2_5_5
+    from tests.common import A, E, F, VIDEO_2_5_5
     from filty.utility import print_array
     
-    filter = filter_ripple
+    filter = filter_rotate_90
     kwargs = {
-        'a': VIDEO_2_5_5.copy(),
-        'wave': (2, 2),
-        'amp': (2, 2),
-        'distaxis': (Y, X),
-        'offset': (0, 0),
+        'a': E.copy(),
+        'direction': 'l',
     }
     out = filter(**kwargs)
     print_array(out, 2)

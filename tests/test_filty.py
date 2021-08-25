@@ -6,7 +6,7 @@ import unittest as ut
 
 import numpy as np
 
-from tests.common import (ArrayTestCase, A, F, VIDEO_2_3_3, VIDEO_2_5_5,
+from tests.common import (ArrayTestCase, A, E, F, VIDEO_2_3_3, VIDEO_2_5_5,
                           IMAGE_5_5_LOW_CONTRAST)
 from filty import filty as f
 
@@ -626,4 +626,44 @@ class RippleTestCase(FilterTestCase):
             'distaxis': (f.Y, f.X),
             'offset': (0, 0),
         }
+        self.run_test(filter, exp, a, **kwargs)
+
+
+class Rotate90TestCase(FilterTestCase):
+    def test_filter(self):
+        """Given image data and a direction, rotate the image data
+        90° in that direction.
+        """
+        filter = f.filter_rotate_90
+        exp = np.array([
+            [
+                [0.8000, 0.6000, 0.4000, 0.2000, 0.0000],
+                [0.9000, 0.7000, 0.5000, 0.3000, 0.1000],
+                [1.0000, 0.8000, 0.6000, 0.4000, 0.2000],
+                [0.7000, 0.9000, 0.7000, 0.5000, 0.3000],
+                [0.8000, 1.0000, 0.8000, 0.6000, 0.4000],
+            ],
+        ], dtype=np.float32)
+        a = E.copy()
+        self.run_test(filter, exp, a)
+
+    def test_filter_counter_clockwise(self):
+        """Given image data and a direction, rotate the image data
+        90° in that direction.
+        """
+        filter = f.filter_rotate_90
+        exp = np.array([
+            [
+                [0.4000, 0.6000, 0.8000, 1.0000, 0.8000],
+                [0.3000, 0.5000, 0.7000, 0.9000, 0.7000],
+                [0.2000, 0.4000, 0.6000, 0.8000, 1.0000],
+                [0.1000, 0.3000, 0.5000, 0.7000, 0.9000],
+                [0.0000, 0.2000, 0.4000, 0.6000, 0.8000],
+            ],
+        ], dtype=np.float32)
+        a = E.copy()
+        kwargs = {
+            'direction': 'ccw',
+        }
+
         self.run_test(filter, exp, a, **kwargs)
