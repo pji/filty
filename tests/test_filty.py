@@ -575,3 +575,55 @@ class PolarToLinearTestCase(FilterTestCase):
         ], dtype=np.float32)
         a = VIDEO_2_5_5.copy()
         self.run_test(filter, exp, a)
+
+
+class RippleTestCase(FilterTestCase):
+    def test_filter(self):
+        """Given image data, a wavelength of the ripples, an
+        amplitude, a distortion axis, and an offset, perform a
+        ripple distortion on the image data.
+        """
+        filter = f.filter_ripple
+        exp = np.array([
+            [1.0000, 0.0000, 0.5000, 0.0000, 0.0000],
+            [0.0000, 0.0000, 0.7500, 0.0000, 0.7500],
+            [0.5000, 0.7500, 0.0000, 0.0000, 0.0000],
+            [0.0000, 0.0000, 0.0000, 0.5000, 0.0000],
+            [0.0000, 0.7500, 0.0000, 0.0000, 0.0000],
+        ], dtype=np.float32)
+        kwargs = {
+            'wave': (2, 2),
+            'amp': (2, 2),
+            'distaxis': (f.Y, f.X),
+            'offset': (0, 0),
+        }
+        self.run_test(filter, exp, **kwargs)
+
+    def test_filter_video(self):
+        """The filter should work on video.
+        """
+        filter = f.filter_ripple
+        exp = np.array([
+            [
+                [1.0000, 0.0000, 0.5000, 0.0000, 0.0000],
+                [0.0000, 0.0000, 0.7500, 0.0000, 0.7500],
+                [0.5000, 0.7500, 0.0000, 0.0000, 0.0000],
+                [0.0000, 0.0000, 0.0000, 0.5000, 0.0000],
+                [0.0000, 0.7500, 0.0000, 0.0000, 0.0000],
+            ],
+            [
+                [1.0000, 0.0000, 0.5000, 0.0000, 0.0000],
+                [0.0000, 0.0000, 0.2500, 0.0000, 0.7500],
+                [0.5000, 0.2500, 1.0000, 0.0000, 0.0000],
+                [0.0000, 0.0000, 0.0000, 1.0000, 0.0000],
+                [0.0000, 0.7500, 0.0000, 0.0000, 0.0000],
+            ],
+        ], dtype=np.float32)
+        a = VIDEO_2_5_5.copy()
+        kwargs = {
+            'wave': (2, 2),
+            'amp': (2, 2),
+            'distaxis': (f.Y, f.X),
+            'offset': (0, 0),
+        }
+        self.run_test(filter, exp, a, **kwargs)

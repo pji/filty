@@ -180,13 +180,47 @@ def filter_polar_to_linear(a: np.ndarray) -> np.ndarray:
     return cv2.linearPolar(a, center, max_radius, cv2.WARP_FILL_OUTLIERS)
 
 
+@processes_by_grayscale_frame
+def filter_ripple(a: np.ndarray,
+                  wave: tuple[float],
+                  amp: tuple[float],
+                  distaxis: tuple[int],
+                  offset: tuple[float] = (0, 0, 0)) -> np.ndarray:
+    """Perform a ripple distortion."""
+    # Map out the volume of the given image and make sure everything is
+    # in float32 to keep the cv2.remap function happy.
+    flex = np.indices(a.shape, np.float32)
+    flex_x = flex[X].copy()
+    flex_y = flex[Y].copy()
+
+    # Modify the mapping to apply the ripple to create the flex
+    # maps for cv.remap. The flex map value for each pixel will
+    # indicate how far that pixel moves in the remapped image.
+    da_x, da_y = distaxis
+    off_y, off_x = offset
+    if wave[X]:
+        flex_x = np.cos((off_x + flex[da_x]) / wave[X] * 2 * np.pi)
+        flex_x = flex[X] + flex_x * amp[X]
+    if wave[Y]:
+        flex_y = np.cos((off_y + flex[da_y]) / wave[Y] * 2 * np.pi)
+        flex_y = flex[Y] + flex_y * amp[Y]
+
+    # Remap the color values in the original image using the
+    # rippled flex map.
+    return cv2.remap(a, flex_x, flex_y, cv2.INTER_LINEAR)
+
+
 if __name__ == '__main__':
     from tests.common import A, F, VIDEO_2_5_5
     from filty.utility import print_array
     
-    filter = filter_polar_to_linear
+    filter = filter_ripple
     kwargs = {
         'a': VIDEO_2_5_5.copy(),
+        'wave': (2, 2),
+        'amp': (2, 2),
+        'distaxis': (Y, X),
+        'offset': (0, 0),
     }
     out = filter(**kwargs)
     print_array(out, 2)
