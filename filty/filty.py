@@ -18,7 +18,13 @@ from filty.utility import (grayscale_to_rgb, uses_uint8, COLOR,
 # Image filter functions.
 @processes_by_grayscale_frame
 def filter_box_blur(a: np.ndarray, size: int) -> np.ndarray:
-    """Perform a box blur."""
+    """Perform a box blur.
+    
+    :param a: The image data to alter.
+    :param size: The size of the blox used in the blur.
+    :returns: A :class:ndarray object.
+    :rtype: numpy.ndarray
+    """
     kernel = np.ones((size, size), float) / size ** 2
     return cv2.filter2D(a, -1, kernel)
 
@@ -31,7 +37,7 @@ def filter_colorize(a: np.ndarray,
                     black: str = '#000000') -> np.array:
     """Colorize a grayscale image.
     
-    :param a: The image data to colorize.
+    :param a: The image data to alter.
     :param colorkey: (Optional.) The key for the pre-defined 
         colors to use in the colorization. These are defined
         in utility.COLOR.
@@ -41,8 +47,8 @@ def filter_colorize(a: np.ndarray,
     :param black: (Optional.) The color name for the color
         to use to replace black in the image. Color names
         are defined by PIL.ImageColor.
-    :returns: The colorized image data.
-    :rtype: A :class:numpy.ndarray object
+    :returns: A :class:ndarray object.
+    :rtype: numpy.ndarray
     """
     src_space = 'L'
     dst_space = 'RGB'
@@ -63,7 +69,12 @@ def filter_colorize(a: np.ndarray,
 
 
 def filter_contrast(a: np.ndarray) -> np.ndarray:
-    """Adjust the image to fill the full dynamic range."""
+    """Adjust the image to fill the full dynamic range.
+    
+    :param a: The image data to alter.
+    :returns: A :class:ndarray object.
+    :rtype: numpy.ndarray
+    """
     a_min = np.min(a)
     a_max = np.max(a)
     scale = a_max - a_min
@@ -73,25 +84,73 @@ def filter_contrast(a: np.ndarray) -> np.ndarray:
     return a
 
 
-def filter_gaussian_blur(a: np.ndarray, sigma: float) -> np.ndarray:
-    """Perform a gaussian blur."""
-    return cv2.GaussianBlur(a, (0, 0), sigma, sigma, 0)
-
-
 def filter_flip(a: np.ndarray, axis: int) -> np.ndarray:
-    """Flip the image around an axis."""
+    """Flip the image around an axis.
+    
+    :param a: The image data to alter.
+    :param axis: The axis to flip the image data around.
+    :returns: A :class:ndarray object.
+    :rtype: numpy.ndarray
+    """
     return np.flip(a, axis)
 
 
+def filter_gaussian_blur(a: np.ndarray, sigma: float) -> np.ndarray:
+    """Perform a gaussian blur.
+    
+    :param a: The image data to alter.
+    :param sigma: The sigma value of the blur. A gaussian blur uses a
+        gaussian function to determine how much the other pixels in
+        the image should affect the value of a pixel. Gaussian
+        functions produce a normal distribution. This value is the
+        size of a standard deviation in that normal distribution.
+    :returns: A :class:ndarray object.
+    :rtype: numpy.ndarray
+    """
+    return cv2.GaussianBlur(a, (0, 0), sigma, sigma, 0)
+
+
+def filter_glow(a: np.ndarray, sigma: int) -> np.ndarray:
+    """Use gaussian blurs to create a halo around brighter objects
+    in the image.
+    """
+    def _screen(a: np.ndarray, b: np.ndarray) -> np.ndarray:
+        rev_a = 1 - a
+        rev_b = 1 - b
+        ab = rev_a * rev_b
+        return 1 - ab
+    
+    b = a.copy()
+    while sigma > 0:
+        if sigma % 2 != 1:
+            sigma -= 1
+        b = filter_gaussian_blur(b, sigma)
+        b = _screen(a, b)
+        sigma = sigma // 2
+    return b
+
+
 def filter_grow(a: np.ndarray, factor: float) -> np.ndarray:
-    """Increase the size of an image."""
+    """Increase the size of an image.
+    
+    :param a: The image data to alter.
+    :param factor: The scaling factor to use when increasing the
+        size of the image.
+    :returns: A :class:ndarray object.
+    :rtype: numpy.ndarray
+    """
     if len(a.shape) == 2:
         return bilinear_interpolation(a, factor)
     return trilinear_interpolation(a, factor)
 
 
 def filter_inverse(a: np.ndarray) -> np.ndarray:
-    """Inverse the colors of an image."""
+    """Inverse the colors of an image.
+    
+    :param a: The image data to alter.
+    :returns: A :class:ndarray object.
+    :rtype: numpy.ndarray
+    """
     return 1 - a
 
 
@@ -100,6 +159,10 @@ def filter_inverse(a: np.ndarray) -> np.ndarray:
 def filter_linear_to_polar(a: np.ndarray) -> np.ndarray:
     """Convert the linear coordinates of the image data to
     polar coordinates.
+
+    :param a: The image data to alter.
+    :returns: A :class:ndarray object.
+    :rtype: numpy.ndarray
     """
     center = tuple(n / 2 for n in a.shape)
     max_radius = np.sqrt(sum(n ** 2 for n in center))
@@ -111,16 +174,27 @@ def filter_linear_to_polar(a: np.ndarray) -> np.ndarray:
 def filter_motion_blur(a: np.ndarray,
                        amount: int,
                        axis: int) -> np.ndarray:
-    """Perform a motion blur."""
+    """Perform a motion blur.
+    
+    :param a: The image data to alter.
+    :param size: The size of the blur to apply.
+    :param direction: The axis that the blur should be performed along.
+        The index should be indicated using the filty.X or filty.Y
+        objects.
+    :returns: A :class:ndarray object.
+    :rtype: numpy.ndarray
+    """
     kernel = np.zeros((amount, amount), float)
     if axis == X:
         y = int(amount // 2)
         for x in range(amount):
             kernel[y][x] = 1 / amount
-    if axis == Y:
+    elif axis == Y:
         x = int(amount // 2)
         for y in range(amount):
             kernel[y][x] = 1 / amount
+    else:
+        raise ValueError('filty.motion_blur can only affect the X or Y axis.')
     return cv2.filter2D(a, -1, kernel)
 
 
@@ -132,6 +206,20 @@ def filter_pinch(a: np.ndarray,
                  offset: tuple[int]) -> np.ndarray:
     """Distort an image to make it appear as though it is being
     pinched or swelling.
+
+    :param a: The image data to alter.
+    :param amount: How much the image should be distorted. Best results
+        seem to be with numbers in the range of -1 <= x <= 1.
+    :param radius: Sets the outside edge of the distortion, measured
+        from the center of the distortion.
+    :param scale: Adjusts the scale of the distortion. I'm not exactly
+        clear on the math, but values less than one seem to increase
+        the distortion. Values greater than one seem to decrease the
+        distortion.
+    :param offset: (Optional.) Sets how far the center of the
+        distortion should be offset from the center of the image.
+    :returns: A :class:ndarray object.
+    :rtype: numpy.ndarray
     """
     # Set up for creating the maps.
     center = tuple((n) / 2 + o for n, o in zip(a.shape, offset))
@@ -175,6 +263,10 @@ def filter_pinch(a: np.ndarray,
 def filter_polar_to_linear(a: np.ndarray) -> np.ndarray:
     """Convert the polar coordinates of the image data to
     linear coordinates.
+
+    :param a: The image data to alter.
+    :returns: A :class:ndarray object.
+    :rtype: numpy.ndarray
     """
     center = tuple(n / 2 for n in a.shape)
     max_radius = np.sqrt(sum(n ** 2 for n in center))
@@ -189,7 +281,7 @@ def filter_ripple(a: np.ndarray,
                   offset: tuple[float] = (0, 0, 0)) -> np.ndarray:
     """Perform a ripple distortion.
 
-    :param a: The image data to ripple.
+    :param a: The image data to alter.
     :param wave: The distance between peaks in the distortion.
         There needs to be one value in the sequence per dimension
         in the image.
@@ -206,8 +298,8 @@ def filter_ripple(a: np.ndarray,
         of the ripples in the image. There needs to be one value
         in the sequence per dimension in the image. The default
         value for all dimensions is zero.
-    :return: An array of image data.
-    :rtype: A :class:numpy.ndarray object.
+    :returns: A :class:ndarray object.
+    :rtype: numpy.ndarray
     """
     # Map out the volume of the given image and make sure everything is
     # in float32 to keep the cv2.remap function happy.
@@ -235,7 +327,7 @@ def filter_ripple(a: np.ndarray,
 def filter_rotate_90(a: np.ndarray, direction: str = 'cw') -> np.ndarray:
     """Rotate the data 90° around the Z axis.
     
-    :param a: Image data.
+    :param a: The image data to alter.
     :param direction: (Optional.) Whether to rotate the data
         clockwise or counter clockwise.
     :returns: An array of image data.
@@ -254,10 +346,10 @@ def filter_rotate_90(a: np.ndarray, direction: str = 'cw') -> np.ndarray:
 def filter_skew(a: np.ndarray, slope: float) -> np.ndarray:
     """Perform a skew distort on the data.
     
-    :param a: Image data.
+    :param a: The image data to alter.
     :param slope: The slope of the Y axis of the image after the skew.
-    :returns: The skewed image data.
-    :rtype: A :class:numpy.ndarray object.
+    :returns: A :class:ndarray object.
+    :rtype: numpy.ndarray
     """
     # Create the transform matrix by defining three points in the
     # original image, and then showing where they move to in the
@@ -291,6 +383,7 @@ def filter_twirl(a: np.ndarray,
                  offset: tuple[int] = (0, 0)) -> np.ndarray:
     """Swirl the image data.
     
+    :param a: The image data to alter.
     :param radius: The location of the edge of the distortion. This
         is measured from the center of the distortion.
     :param strength: The amount of the distortion. Its roughly
@@ -298,8 +391,8 @@ def filter_twirl(a: np.ndarray,
         around the center of the distortion.
     :param offset: (Optional.) How far to offset the center of the
         distortion from the center of the image.
-    :return: The twirled data.
-    :rtype: A :class:numpy.ndarray object.
+    :returns: A :class:ndarray object.
+    :rtype: numpy.ndarray
     """
     # Determine the location of the center of the twirl effect.
     center = [n / 2 + o for n, o in zip(a.shape, offset)]
@@ -311,11 +404,10 @@ if __name__ == '__main__':
     from tests.common import A, E, F, VIDEO_2_5_5
     from filty.utility import print_array
     
-    filter = filter_twirl
+    filter = filter_glow
     kwargs = {
         'a': VIDEO_2_5_5.copy(),
-        'radius': 5.0,
-        'strength': 0.25,
+        'sigma': 4,
     }
     out = filter(**kwargs)
     print_array(out, 2)

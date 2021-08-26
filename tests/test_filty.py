@@ -305,6 +305,35 @@ class GaussianBlurTestCase(FilterTestCase):
         self.run_test(filter, exp, a, **kwarg)
 
 
+class GlowTestCase(FilterTestCase):
+    def test_filter(self):
+        """Given image data and a size factor, zoom into the image
+        by the size factor.
+        """
+        filter = f.filter_glow
+        exp = np.array([
+            [
+                [0.7477, 0.9173, 0.9596, 0.9729, 1.0000],
+                [0.8113, 0.9510, 0.9844, 1.0000, 0.9379],
+                [0.8750, 0.9784, 1.0000, 0.9784, 0.8750],
+                [0.9379, 1.0000, 0.9844, 0.9510, 0.8113],
+                [1.0000, 0.9729, 0.9596, 0.9173, 0.7477],
+            ],
+            [
+                [1.0000, 0.9729, 0.9596, 0.9173, 0.7477],
+                [0.9379, 1.0000, 0.9844, 0.9510, 0.8113],
+                [0.8750, 0.9784, 1.0000, 0.9784, 0.8750],
+                [0.8113, 0.9510, 0.9844, 1.0000, 0.9379],
+                [0.7477, 0.9173, 0.9596, 0.9729, 1.0000],
+            ],
+        ], dtype=np.float32)
+        a = VIDEO_2_5_5.copy()
+        kwarg = {
+            'sigma': 4,
+        }
+        self.run_test(filter, exp, a, **kwarg)
+
+
 class GrowTestCase(FilterTestCase):
     def test_filter(self):
         """Given image data and a size factor, zoom into the image
@@ -486,6 +515,25 @@ class MotionBlurTestCase(FilterTestCase):
             'axis': f.X,
         }
         self.run_test(filter, exp, a, **kwargs)
+
+    def test_filter_along_disallowed_axis(self):
+        """The motion blur work on video.
+        """
+        # Expected value.
+        exp_ex = ValueError
+        exp_msg = 'filty.motion_blur can only affect the X or Y axis.'
+
+        # Test data and setup.
+        filter = f.filter_motion_blur
+        a = A.copy()
+        kwargs = {
+            'amount': 2,
+            'axis': -3,
+        }
+
+        # Run test and determine result.
+        with self.assertRaisesRegex(exp_ex, exp_msg):
+            _ = filter(a, **kwargs)
 
 
 class PinchTestCase(FilterTestCase):
