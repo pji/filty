@@ -5,6 +5,7 @@ utility
 Utility functions for the filty module.
 """
 from functools import wraps
+from inspect import getmembers, isfunction
 from typing import Callable
 
 import numpy as np
@@ -196,6 +197,17 @@ def will_square(fn: Callable) -> Callable:
             a = a[..., y_start:y_end, x_start:x_end]
         return a            
     return wrapper
+
+
+# Discovery functions.
+def get_prefixed_functions(prefix: str, obj: object) -> dict:
+    """Return the functions within the given object that start with
+    the prefix.
+    """
+    names = getmembers(obj, isfunction)
+    p_len = len(prefix)
+    fns = {name[p_len:]: fn for name, fn in names if name.startswith(prefix)}
+    return fns
 
 
 # Interpolation functions.

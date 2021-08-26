@@ -667,3 +667,122 @@ class Rotate90TestCase(FilterTestCase):
         }
 
         self.run_test(filter, exp, a, **kwargs)
+
+
+class SkewTestCase(FilterTestCase):
+    def test_filter(self):
+        """Given image data and a slope, skew the image data by an
+        amount equal to the slope.
+        """
+        filter = f.filter_skew
+        exp = np.array([
+            [0.0000, 0.2500, 0.5000, 0.7500, 1.0000],
+            [1.0000, 0.7500, 0.2500, 0.5000, 0.7500],
+            [0.7500, 1.0000, 0.7500, 0.5000, 0.5000],
+            [0.2500, 0.7500, 1.0000, 0.7500, 0.5000],
+            [0.5000, 0.2500, 0.0000, 1.0000, 0.7500],
+        ], dtype=np.float32)
+        kwargs = {
+            'slope': 2.0,
+        }
+        self.run_test(filter, exp, **kwargs)
+
+    def test_filter_video(self):
+        """Video data should be processed one frame at a time."""
+        filter = f.filter_skew
+        exp = np.array([
+            [
+                [0.0000, 0.2500, 0.5000, 0.7500, 1.0000],
+                [1.0000, 0.7500, 0.2500, 0.5000, 0.7500],
+                [0.7500, 1.0000, 0.7500, 0.5000, 0.5000],
+                [0.2500, 0.7500, 1.0000, 0.7500, 0.5000],
+                [0.5000, 0.2500, 0.0000, 1.0000, 0.7500],
+            ],
+            [
+                [1.0000, 0.7500, 0.5000, 0.2500, 0.0000],
+                [0.5000, 0.2500, 0.7500, 1.0000, 0.7500],
+                [0.7500, 1.0000, 0.7500, 0.5000, 0.5000],
+                [0.7500, 0.2500, 0.5000, 0.7500, 1.0000],
+                [0.5000, 0.7500, 1.0000, 0.0000, 0.2500],
+            ],
+        ], dtype=np.float32)
+        a = VIDEO_2_5_5.copy()
+        kwargs = {
+            'slope': 2.0,
+        }
+        self.run_test(filter, exp, a, **kwargs)
+
+
+class TwirlTestCase(FilterTestCase):
+    def test_filter(self):
+        """Given image data, a radius, a strength, and an offset,
+        perform a twirl distortion on the data.
+        """
+        filter = f.filter_twirl
+        exp = np.array([
+            [0.0019, 0.2537, 0.5047, 0.7547, 0.9963],
+            [0.2491, 0.5001, 0.7565, 0.9871, 0.7499],
+            [0.4969, 0.7438, 0.9785, 0.7275, 0.4935],
+            [0.7468, 0.9873, 0.7715, 0.5010, 0.2438],
+            [0.9963, 0.7586, 0.5129, 0.2627, 0.0088],
+        ], dtype=np.float32)
+        kwargs = {
+            'radius': 5.0,
+            'strength': 0.25,
+        }
+        self.run_test(filter, exp, **kwargs)
+
+    def test_filter_video(self):
+        """The filter should operate on each frame of a video."""
+        filter = f.filter_twirl
+        exp = np.array([
+            [
+                [0.0019, 0.2537, 0.5047, 0.7547, 0.9963],
+                [0.2491, 0.5001, 0.7565, 0.9871, 0.7499],
+                [0.4969, 0.7438, 0.9785, 0.7275, 0.4935],
+                [0.7468, 0.9873, 0.7715, 0.5010, 0.2438],
+                [0.9963, 0.7586, 0.5129, 0.2627, 0.0088],
+            ],
+            [
+                [0.9981, 0.7491, 0.4968, 0.2469, 0.0037],
+                [0.7537, 0.9912, 0.7373, 0.4938, 0.2588],
+                [0.5047, 0.7626, 0.9775, 0.7510, 0.5127],
+                [0.2547, 0.5065, 0.7510, 0.9775, 0.7626],
+                [0.0037, 0.2501, 0.4938, 0.7435, 0.9914],
+            ],
+        ], dtype=np.float32)
+        a = VIDEO_2_5_5.copy()
+        kwargs = {
+            'radius': 5.0,
+            'strength': 0.25,
+        }
+        self.run_test(filter, exp, a, **kwargs)
+
+    def test_filter_with_offset(self):
+        """Given an offset, the center of the effect should be moved
+        by the amount of the offset.
+        """
+        filter = f.filter_twirl
+        exp = np.array([
+            [
+                [0.0005, 0.2515, 0.5047, 0.7626, 0.9785],
+                [0.2496, 0.4985, 0.7453, 0.9873, 0.7715],
+                [0.4998, 0.7487, 0.9963, 0.7586, 0.5129],
+                [0.7499, 0.9992, 0.7519, 0.5037, 0.2547],
+                [0.9999, 0.7503, 0.5008, 0.2513, 0.0015],
+            ],
+            [
+                [0.9995, 0.7511, 0.5031, 0.2562, 0.0225],
+                [0.7505, 0.9985, 0.7468, 0.4935, 0.2490],
+                [0.5004, 0.7505, 0.9963, 0.7499, 0.5062],
+                [0.2503, 0.5001, 0.7500, 0.9963, 0.7531],
+                [0.0001, 0.2500, 0.4999, 0.7495, 0.9985],
+            ],
+        ], dtype=np.float32)
+        a = VIDEO_2_5_5.copy()
+        kwargs = {
+            'radius': 5.0,
+            'strength': 0.25,
+            'offset': (-2, 2)
+        }
+        self.run_test(filter, exp, a, **kwargs)

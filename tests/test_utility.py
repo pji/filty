@@ -11,6 +11,33 @@ from tests.common import ArrayTestCase
 
 
 # Test cases.
+class GetPrefixedFunctions(ArrayTestCase):
+    def test_get_functions(self):
+        """When given a prefix and an object, return the dict of
+        functions within that object's namespace that start with
+        the prefix.
+        """
+        # Expected value setup.
+        from tests import spam
+
+        # Expected value.
+        exp = {
+            'eggs': spam.spam_eggs,
+            'bacon': spam.spam_bacon,
+            'baked_beans': spam.spam_baked_beans,
+        }
+
+        # Test data and state.
+        prefix = 'spam_'
+        obj = spam
+
+        # Run test.
+        act = u.get_prefixed_functions(prefix, obj)
+
+        # Determine test result.
+        self.assertDictEqual(exp, act)
+
+
 class WillSquareTestCase(ArrayTestCase):
     def test_will_square(self):
         """Given an array with the X axis having a different size

@@ -7,6 +7,7 @@ Filter functions for image data.
 import cv2
 from PIL import Image, ImageOps
 import numpy as np
+import skimage.transform as sktf
 
 from filty.utility import (grayscale_to_rgb, uses_uint8, COLOR,
                            processes_by_grayscale_frame,
@@ -249,14 +250,72 @@ def filter_rotate_90(a: np.ndarray, direction: str = 'cw') -> np.ndarray:
     return np.rot90(a, spin, (Y, X))
 
 
+@processes_by_grayscale_frame
+def filter_skew(a: np.ndarray, slope: float) -> np.ndarray:
+    """Perform a skew distort on the data.
+    
+    :param a: Image data.
+    :param slope: The slope of the Y axis of the image after the skew.
+    :returns: The skewed image data.
+    :rtype: A :class:numpy.ndarray object.
+    """
+    # Create the transform matrix by defining three points in the
+    # original image, and then showing where they move to in the
+    # new, transformed image. The order of the axes is reversed
+    # for this in comparison to how it's generally used in pjinoise.
+    # This is due to the implementation of OpenCV.
+    original = np.array([
+        [0, 0],
+        [a.shape[X] - 1, 0],
+        [0, a.shape[Y] - 1],
+    ], dtype=np.float32)
+    new = np.array([
+        [0, 0],
+        [a.shape[X] - 1, 0],
+        [(a.shape[Y] - 1) * slope, a.shape[Y] - 1],
+    ], dtype=np.float32)
+
+    # Perform the transform on the image by first creating a warp
+    # matrix from the example points. Then apply that matrix to
+    # the image, telling OpenCV to wrap pixels that are pushed off
+    # the edge of the image.
+    matrix = cv2.getAffineTransform(original, new)
+    return cv2.warpAffine(a, matrix, (a.shape[X], a.shape[Y]),
+                          borderMode=cv2.BORDER_WRAP)
+
+
+@processes_by_grayscale_frame
+def filter_twirl(a: np.ndarray,
+                 radius: float,
+                 strength: float,
+                 offset: tuple[int] = (0, 0)) -> np.ndarray:
+    """Swirl the image data.
+    
+    :param radius: The location of the edge of the distortion. This
+        is measured from the center of the distortion.
+    :param strength: The amount of the distortion. Its roughly
+        equivalent to the number of rotations the distortion makes
+        around the center of the distortion.
+    :param offset: (Optional.) How far to offset the center of the
+        distortion from the center of the image.
+    :return: The twirled data.
+    :rtype: A :class:numpy.ndarray object.
+    """
+    # Determine the location of the center of the twirl effect.
+    center = [n / 2 + o for n, o in zip(a.shape, offset)]
+    return sktf.swirl(a, center[::-1], strength, radius)
+    
+
+
 if __name__ == '__main__':
     from tests.common import A, E, F, VIDEO_2_5_5
     from filty.utility import print_array
     
-    filter = filter_rotate_90
+    filter = filter_twirl
     kwargs = {
-        'a': E.copy(),
-        'direction': 'l',
+        'a': VIDEO_2_5_5.copy(),
+        'radius': 5.0,
+        'strength': 0.25,
     }
     out = filter(**kwargs)
     print_array(out, 2)
