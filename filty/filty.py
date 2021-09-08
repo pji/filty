@@ -4,12 +4,12 @@ filty
 
 Filter functions for image data.
 """
-import cv2
-from PIL import Image, ImageOps
+import cv2                                          # type: ignore
+from PIL import Image, ImageOps                     # type: ignore
 import numpy as np
-import skimage.transform as sktf
+import skimage.transform as sktf                    # type: ignore
 
-from filty.utility import (grayscale_to_rgb, uses_uint8, COLOR,
+from filty.utility import (grayscale_to_rgb, uses_uint8, get_color_for_key,
                            processes_by_grayscale_frame,
                            trilinear_interpolation, X, Y, Z,
                            bilinear_interpolation, will_square)
@@ -19,7 +19,7 @@ from filty.utility import (grayscale_to_rgb, uses_uint8, COLOR,
 @processes_by_grayscale_frame
 def filter_box_blur(a: np.ndarray, size: int) -> np.ndarray:
     """Perform a box blur.
-    
+
     :param a: The image data to alter.
     :param size: The size of the blox used in the blur.
     :returns: A :class:ndarray object.
@@ -31,14 +31,14 @@ def filter_box_blur(a: np.ndarray, size: int) -> np.ndarray:
 
 @processes_by_grayscale_frame
 @uses_uint8
-def filter_colorize(a: np.ndarray, 
+def filter_colorize(a: np.ndarray,
                     colorkey: str = '',
                     white: str = '#FFFFFF',
-                    black: str = '#000000') -> np.array:
+                    black: str = '#000000') -> np.ndarray:
     """Colorize a grayscale image.
-    
+
     :param a: The image data to alter.
-    :param colorkey: (Optional.) The key for the pre-defined 
+    :param colorkey: (Optional.) The key for the pre-defined
         colors to use in the colorization. These are defined
         in utility.COLOR.
     :param white: (Optional.) The color name for the color
@@ -53,7 +53,7 @@ def filter_colorize(a: np.ndarray,
     src_space = 'L'
     dst_space = 'RGB'
     if colorkey:
-        white, black = COLOR[colorkey]
+        white, black = get_color_for_key(colorkey)
     img = Image.fromarray(a, mode=src_space)
     img = ImageOps.colorize(**{
         'image': img,
@@ -70,7 +70,7 @@ def filter_colorize(a: np.ndarray,
 
 def filter_contrast(a: np.ndarray) -> np.ndarray:
     """Adjust the image to fill the full dynamic range.
-    
+
     :param a: The image data to alter.
     :returns: A :class:ndarray object.
     :rtype: numpy.ndarray
@@ -86,7 +86,7 @@ def filter_contrast(a: np.ndarray) -> np.ndarray:
 
 def filter_flip(a: np.ndarray, axis: int) -> np.ndarray:
     """Flip the image around an axis.
-    
+
     :param a: The image data to alter.
     :param axis: The axis to flip the image data around.
     :returns: A :class:ndarray object.
@@ -97,7 +97,7 @@ def filter_flip(a: np.ndarray, axis: int) -> np.ndarray:
 
 def filter_gaussian_blur(a: np.ndarray, sigma: float) -> np.ndarray:
     """Perform a gaussian blur.
-    
+
     :param a: The image data to alter.
     :param sigma: The sigma value of the blur. A gaussian blur uses a
         gaussian function to determine how much the other pixels in
@@ -119,7 +119,7 @@ def filter_glow(a: np.ndarray, sigma: int) -> np.ndarray:
         rev_b = 1 - b
         ab = rev_a * rev_b
         return 1 - ab
-    
+
     b = a.copy()
     while sigma > 0:
         if sigma % 2 != 1:
@@ -132,7 +132,7 @@ def filter_glow(a: np.ndarray, sigma: int) -> np.ndarray:
 
 def filter_grow(a: np.ndarray, factor: float) -> np.ndarray:
     """Increase the size of an image.
-    
+
     :param a: The image data to alter.
     :param factor: The scaling factor to use when increasing the
         size of the image.
@@ -146,7 +146,7 @@ def filter_grow(a: np.ndarray, factor: float) -> np.ndarray:
 
 def filter_inverse(a: np.ndarray) -> np.ndarray:
     """Inverse the colors of an image.
-    
+
     :param a: The image data to alter.
     :returns: A :class:ndarray object.
     :rtype: numpy.ndarray
@@ -175,7 +175,7 @@ def filter_motion_blur(a: np.ndarray,
                        amount: int,
                        axis: int) -> np.ndarray:
     """Perform a motion blur.
-    
+
     :param a: The image data to alter.
     :param size: The size of the blur to apply.
     :param direction: The axis that the blur should be performed along.
@@ -253,7 +253,7 @@ def filter_pinch(a: np.ndarray,
 
     flex_x[~pmask] = 1.0 * delta_x[~pmask] / scale[X] + center[X]
     flex_y[~pmask] = 1.0 * delta_y[~pmask] / scale[Y] + center[Y]
-    
+
     # Perform the pinch using the maps and return.
     return cv2.remap(a, flex_x, flex_y, cv2.INTER_LINEAR)
 
@@ -277,8 +277,8 @@ def filter_polar_to_linear(a: np.ndarray) -> np.ndarray:
 def filter_ripple(a: np.ndarray,
                   wave: tuple[float],
                   amp: tuple[float],
-                  distaxis: tuple[int],
-                  offset: tuple[float] = (0, 0, 0)) -> np.ndarray:
+                  distaxis: tuple[int, ...],
+                  offset: tuple[float, ...] = (0.0, 0.0, 0.0)) -> np.ndarray:
     """Perform a ripple distortion.
 
     :param a: The image data to alter.
@@ -310,8 +310,8 @@ def filter_ripple(a: np.ndarray,
     # Modify the mapping to apply the ripple to create the flex
     # maps for cv.remap. The flex map value for each pixel will
     # indicate how far that pixel moves in the remapped image.
-    da_x, da_y = distaxis
-    off_y, off_x = offset
+    da_x, da_y, *_ = distaxis
+    off_y, off_x, *_ = offset
     if wave[X]:
         flex_x = np.cos((off_x + flex[da_x]) / wave[X] * 2 * np.pi)
         flex_x = flex[X] + flex_x * amp[X]
@@ -326,7 +326,7 @@ def filter_ripple(a: np.ndarray,
 
 def filter_rotate_90(a: np.ndarray, direction: str = 'cw') -> np.ndarray:
     """Rotate the data 90° around the Z axis.
-    
+
     :param a: The image data to alter.
     :param direction: (Optional.) Whether to rotate the data
         clockwise or counter clockwise.
@@ -345,7 +345,7 @@ def filter_rotate_90(a: np.ndarray, direction: str = 'cw') -> np.ndarray:
 @processes_by_grayscale_frame
 def filter_skew(a: np.ndarray, slope: float) -> np.ndarray:
     """Perform a skew distort on the data.
-    
+
     :param a: The image data to alter.
     :param slope: The slope of the Y axis of the image after the skew.
     :returns: A :class:ndarray object.
@@ -380,9 +380,9 @@ def filter_skew(a: np.ndarray, slope: float) -> np.ndarray:
 def filter_twirl(a: np.ndarray,
                  radius: float,
                  strength: float,
-                 offset: tuple[int] = (0, 0)) -> np.ndarray:
+                 offset: tuple[int, int] = (0, 0)) -> np.ndarray:
     """Swirl the image data.
-    
+
     :param a: The image data to alter.
     :param radius: The location of the edge of the distortion. This
         is measured from the center of the distortion.
@@ -397,13 +397,12 @@ def filter_twirl(a: np.ndarray,
     # Determine the location of the center of the twirl effect.
     center = [n / 2 + o for n, o in zip(a.shape, offset)]
     return sktf.swirl(a, center[::-1], strength, radius)
-    
 
 
 if __name__ == '__main__':
-    from tests.common import A, E, F, VIDEO_2_5_5
+    from tests.common import A, E, F, VIDEO_2_5_5       # type: ignore
     from filty.utility import print_array
-    
+
     filter = filter_glow
     kwargs = {
         'a': VIDEO_2_5_5.copy(),
