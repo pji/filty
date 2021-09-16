@@ -1,6 +1,6 @@
-#####
-filty
-#####
+#######
+imgfilt
+#######
 
 A python package for distorting or otherwise affecting image data.
 
@@ -31,9 +31,9 @@ It should be, but I've not tested that.
 ************************************
 Can I install this package from pip?
 ************************************
-Yes, but filty is not currently available through PyPI. You will
+Yes, but imgfilt is not currently available through PyPI. You will
 need to clone the repository to the system you want to install
-filty on and run the following::
+imgfilt on and run the following::
 
     pip install path/to/local/copy
 

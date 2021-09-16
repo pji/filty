@@ -2,7 +2,7 @@
 utility
 ~~~~~~~
 
-Utility functions for the filty module.
+Utility functions for the imgfilt module.
 """
 from functools import wraps
 from inspect import getmembers, isfunction

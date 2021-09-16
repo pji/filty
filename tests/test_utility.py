@@ -2,11 +2,11 @@
 test_utility
 ~~~~~~~~~~~~
 
-Unit tests for the filty.utility module.
+Unit tests for the imgfilt.utility module.
 """
 import numpy as np
 
-from filty import utility as u
+from imgfilt import utility as u
 from tests.common import ArrayTestCase
 
 

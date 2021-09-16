@@ -1,5 +1,5 @@
 """
-test_filty
+test_imgfilt
 ~~~~~~~~~~
 """
 import unittest as ut
@@ -8,7 +8,7 @@ import numpy as np
 
 from tests.common import (ArrayTestCase, A, E, F, VIDEO_2_3_3, VIDEO_2_5_5,
                           IMAGE_5_5_LOW_CONTRAST)
-from filty import filty as f
+from imgfilt import imgfilt as f
 
 
 # Base test case.
@@ -521,7 +521,7 @@ class MotionBlurTestCase(FilterTestCase):
         """
         # Expected value.
         exp_ex = ValueError
-        exp_msg = 'filty.motion_blur can only affect the X or Y axis.'
+        exp_msg = 'motion_blur can only affect the X or Y axis.'
 
         # Test data and setup.
         filter = f.filter_motion_blur

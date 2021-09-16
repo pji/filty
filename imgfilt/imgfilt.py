@@ -1,5 +1,5 @@
 """
-filty
+imgfilt
 ~~~~~
 
 Filter functions for image data.
@@ -9,10 +9,10 @@ from PIL import Image, ImageOps                     # type: ignore
 import numpy as np
 import skimage.transform as sktf                    # type: ignore
 
-from filty.utility import (grayscale_to_rgb, uses_uint8, get_color_for_key,
-                           processes_by_grayscale_frame,
-                           trilinear_interpolation, X, Y, Z,
-                           bilinear_interpolation, will_square)
+from imgfilt.utility import (grayscale_to_rgb, uses_uint8, get_color_for_key,
+                             processes_by_grayscale_frame,
+                             trilinear_interpolation, X, Y, Z,
+                             bilinear_interpolation, will_square)
 
 
 # Image filter functions.
@@ -179,7 +179,7 @@ def filter_motion_blur(a: np.ndarray,
     :param a: The image data to alter.
     :param size: The size of the blur to apply.
     :param direction: The axis that the blur should be performed along.
-        The index should be indicated using the filty.X or filty.Y
+        The index should be indicated using the imgfilt.X or imgfilt.Y
         objects.
     :returns: A :class:ndarray object.
     :rtype: numpy.ndarray
@@ -194,7 +194,7 @@ def filter_motion_blur(a: np.ndarray,
         for y in range(amount):
             kernel[y][x] = 1 / amount
     else:
-        raise ValueError('filty.motion_blur can only affect the X or Y axis.')
+        raise ValueError('motion_blur can only affect the X or Y axis.')
     return cv2.filter2D(a, -1, kernel)
 
 
@@ -401,7 +401,7 @@ def filter_twirl(a: np.ndarray,
 
 if __name__ == '__main__':
     from tests.common import A, E, F, VIDEO_2_5_5       # type: ignore
-    from filty.utility import print_array
+    from imgfilt.utility import print_array
 
     filter = filter_glow
     kwargs = {

@@ -5,7 +5,7 @@ __version__
 Common information, including the version number.
 """
 
-__title__ = 'filty'
+__title__ = 'imgfilt'
 __description__ = ''
 __version__ = '0.0.1'
 __author__ = 'Paul J. Iutzi'

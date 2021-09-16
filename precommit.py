@@ -90,7 +90,7 @@ def check_rst(file_paths, ignore):
                 lines = fh.read()
             result = list(rstcheck.check(lines))
             if result:
-                results.append(file, *result)
+                results.append(f'{file}: {result}')
         return results
 
     def result_handler(result):
