@@ -52,17 +52,25 @@ def filter_colorize(a: np.ndarray,
     """
     src_space = 'L'
     dst_space = 'RGB'
+    mid = ''
     if colorkey:
-        white, black = get_color_for_key(colorkey)
+        colors = get_color_for_key(colorkey)
+        if len(colors) == 3:
+            white, mid, black = colors
+        else:
+            white, black = colors
     img = Image.fromarray(a, mode=src_space)
-    img = ImageOps.colorize(**{
+    kwargs = {
         'image': img,
         'black': black,
         'white': white,
         'blackpoint': 0x00,
         'midpoint': 0x7f,
         'whitepoint': 0xff,
-    })
+    }
+    if mid:
+        kwargs['mid'] = mid
+    img = ImageOps.colorize(**kwargs)
     img = img.convert(dst_space)
     out = np.array(img, dtype=a.dtype)
     return out
@@ -403,10 +411,10 @@ if __name__ == '__main__':
     from tests.common import A, E, F, VIDEO_2_5_5       # type: ignore
     from imgfilt.utility import print_array
 
-    filter = filter_glow
+    filter = filter_colorize
     kwargs = {
-        'a': VIDEO_2_5_5.copy(),
-        'sigma': 4,
+        'a': F.copy(),
+        'colorkey': 'em',
     }
     out = filter(**kwargs)                              # type: ignore
     print_array(out, 2)

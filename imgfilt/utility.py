@@ -12,7 +12,7 @@ import numpy as np
 
 
 # Types.
-Color = NewType('Color', tuple[str, str])
+Color = NewType('Color', tuple[str, ...])
 ColorDict = NewType('ColorDict', dict[str, Color])
 
 
@@ -56,6 +56,12 @@ COLORS = ColorDict({
     # Ectoplasmic teal.
     'e': Color(("hsv(190, 50%, 100%)", "hsv(190, 100%, 0%)")),
     'E': Color(("hsl(190, 50%, 100%)", "hsl(190, 100%, 30%)")),
+
+    'em': Color((
+        "hsv(190, 0%, 100%)",
+        "hsv(190, 100%, 100%)",
+        "hsv(190, 100%, 0%)"
+    )),
 
     # Electric green.
     'g': Color(('hsv(90, 100%, 100%)', 'hsv(90, 100%, 0%)')),

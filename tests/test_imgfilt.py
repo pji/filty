@@ -131,6 +131,35 @@ class ColorizeTestCase(FilterTestCase):
         }
         self.run_test(filter, exp, a, **kwargs)
 
+    def test_filter_by_colorkey_with_mid(self):
+        """Given an RGB color and grayscale image data, the color is
+        applied to the image data. If the given colorkey has a mid, then
+        it is used in the colorization.
+        """
+        filter = f.filter_colorize
+        exp = np.array([
+            [
+                [1.0000, 1.0000, 1.0000],
+                [0.0000, 0.8314, 1.0000],
+                [0.0000, 0.0000, 0.0000],
+            ],
+            [
+                [0.0000, 0.8314, 1.0000],
+                [0.0000, 0.0000, 0.0000],
+                [0.0000, 0.8314, 1.0000],
+            ],
+            [
+                [0.0000, 0.0000, 0.0000],
+                [0.0000, 0.8314, 1.0000],
+                [1.0000, 1.0000, 1.0000],
+            ],
+        ], dtype=np.float32)
+        a = F.copy()
+        kwargs = {
+            'colorkey': 'em',
+        }
+        self.run_test(filter, exp, a, **kwargs)
+
     def test_filter_on_video(self):
         """Given three-dimensional image data, the filter should
         colorize every frame of the data.
