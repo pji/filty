@@ -408,5 +408,5 @@ if __name__ == '__main__':
         'a': VIDEO_2_5_5.copy(),
         'sigma': 4,
     }
-    out = filter(**kwargs)
+    out = filter(**kwargs)                              # type: ignore
     print_array(out, 2)
