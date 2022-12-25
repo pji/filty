@@ -12,13 +12,15 @@ import glob
 import importlib
 from itertools import zip_longest
 import os
+from pathlib import Path
 import sys
 import unittest as ut
 from textwrap import wrap
 
 import mypy.api
 import pycodestyle as pcs
-import rstcheck
+import rstcheck_core.checker as rstchecker
+from rstcheck_core.config import RstcheckConfig
 
 
 # Script configuration.
@@ -55,7 +57,7 @@ def check_requirements():
     """Check requirements."""
     print('Checking requirements...')
     os.putenv('PIPENV_VERBOSITY', '-1')
-    cmd = '.venv/bin/python -m pipenv lock -r'
+    cmd = '.venv/bin/python -m pipenv requirements'
     current = os.popen(cmd).readlines()
     current = wrap_lines(current, 35, '', '  ')
     with open('requirements.txt') as fh:
@@ -70,7 +72,8 @@ def check_requirements():
         print('requirements.txt out of date.')
         print()
         tmp = '{:<35} {:<35}'
-        print(tmp.format('old', 'current'))
+        print(tmp.format('current', 'old'))
+        print('\u2500' * 70)
         for c, o in zip_longest(current, old, fillvalue=''):
             print(tmp.format(c, o))
         print()
@@ -82,37 +85,29 @@ def check_requirements():
 
 
 def check_rst(file_paths, ignore):
-    """Remove trailing whitespace."""
+    """Run syntax checks on any ReStructured Text documents."""
     def action(files):
         results = []
+        config = RstcheckConfig()
         for file in files:
-            with open(file) as fh:
-                lines = fh.read()
-            result = list(rstcheck.check(lines))
+            result = list(rstchecker.check_file(Path(file), config))
             if result:
-                results.append(f'{file}: {result}')
+                for item in result:
+                    msg = f'{file}:{item["line_number"]} {item["message"]}'
+                    results.append(msg)
         return results
-
-    def result_handler(result):
-        if result:
-            for line in result:
-                print(' ' * 4 + line)
 
     title = 'Checking RSTs'
     file_ext = '.rst'
     run_check_on_files(title, action, file_paths, ignore,
-                       file_ext, result_handler)
+                       file_ext, write_report)
 
 
 def check_style(file_paths, ignore):
-    """Remove trailing whitespace."""
+    """Run style checks on the code."""
     def result_handler(result):
         if result.get_count():
-            for msg in result.result_messages:
-                lines = wrap(msg, 78)
-                print(' ' * 4 + lines[0])
-                for line in lines[1:]:
-                    print(' ' * 6 + line)
+            write_report(result.result_messages)
             result.result_messages = []
 
     class StyleReport(pcs.BaseReport):
@@ -244,6 +239,14 @@ def wrap_lines(lines, width, initial_indent, subsequent_indent):
     return out
 
 
+def write_report(result):
+    if not result:
+        return None
+    wrapped = wrap_lines(result, 72, ' ' * 4, ' ' * 6)
+    for line in wrapped:
+        print(line)
+
+
 def main():
     # Save time by not checking files that git ignores.
     ignore = []
@@ -265,14 +268,15 @@ def main():
     unit_tests = config['unit_tests']
 
     # Initial checks.
-    check_venv()
+    # check_venv()
     check_whitespace(python_files, ignore)
     result = check_unit_tests(unit_tests)
 
     # Only continue with precommit checks if the unit tests passed.
     if not result.errors and not result.failures:
-        check_requirements()
-        check_doctests(doctest_modules)
+        # check_requirements()
+        if 'doctest_modules' in config:
+            check_doctests(doctest_modules)
         check_style(python_files, ignore)
         check_rst(rst_files, ignore)
         check_type_hints(get_module_dir())
