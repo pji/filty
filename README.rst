@@ -5,7 +5,6 @@ imgfilt
 A python package for distorting or otherwise affecting image data.
 
 
-***********************
 Why did you write this?
 ***********************
 I've been working on some code to procedurally generate images and
@@ -15,20 +14,17 @@ sure if this is useful to anyone else, but I figured I'd put it out
 there just in case.
 
 
-**********************
 How do I run the code?
 **********************
 The best way to get started is to clone the repository to your local
 system and take a look at the examples in the example directory.
 
 
-***************
 Is it portable?
 ***************
 It should be, but I've not tested that.
 
 
-************************************
 Can I install this package from pip?
 ************************************
 Yes, but imgfilt is not currently available through PyPI. You will
@@ -41,7 +37,6 @@ Replace `path/to/local/copy` with the path for your local clone of
 this repository.
 
 
-***********************
 How do I run the tests?
 ***********************
 The `precommit.py` script in the root of the repository will run the
@@ -52,7 +47,6 @@ tests with::
     python -m unittest discover tests
 
 
-********************
 How do I contribute?
 ********************
 At this time, this is code is really just me exploring and learning.
@@ -63,3 +57,13 @@ That said, if other people do find it useful and start using it, I'll
 reconsider. If you do use it and see something you want changed or
 added, go ahead and open an issue. If anyone ever does that, I'll
 figure out how to handle it.
+
+
+Updates
+*******
+The following updates were included in v0.0.2:
+
+*   Migrate tests to `pytest`.
+*   Set up `tox`.
+*   Build documentation.
+*   Build examples.

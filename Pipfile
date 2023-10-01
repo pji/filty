@@ -12,8 +12,13 @@ scikit-image = "*"
 [dev-packages]
 pycodestyle = "*"
 mypy = "*"
-rstcheck = "*"
 build = "*"
+pytest = "*"
+isort = "*"
+tox = "*"
+rstcheck = {extras = ["toml", "sphinx"], version = "*"}
+twine = "*"
+imgfilt = {file = ".", editable = true}
 
 [requires]
 python_version = "3.9"

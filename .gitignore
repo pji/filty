@@ -8,3 +8,7 @@ dist
 # Ignore virtual environment.
 .venv
 .venv*
+
+# Ignore OS and IDE files.
+.DS_Store
+*BBEdit*
