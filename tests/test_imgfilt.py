@@ -6,8 +6,13 @@ import unittest as ut
 
 import numpy as np
 
-from tests.common import (ArrayTestCase, A, E, F, VIDEO_2_3_3, VIDEO_2_5_5,
-                          IMAGE_5_5_LOW_CONTRAST)
+from tests.common import (
+    ArrayTestCase,
+    A, E, F,
+    VIDEO_2_3_3,
+    VIDEO_2_5_5,
+    IMAGE_5_5_LOW_CONTRAST
+)
 from imgfilt import imgfilt as f
 
 

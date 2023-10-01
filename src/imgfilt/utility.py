@@ -11,6 +11,14 @@ from typing import Callable, NewType
 import numpy as np
 
 
+# Exportable names.
+__all__ = [
+    'X', 'Y', 'Z', 'bilinear_interpolation', 'get_color_for_key',
+    'grayscale_to_rgb', 'processes_by_grayscale_frame',
+    'trilinear_interpolation', 'uses_uint8', 'will_square',
+]
+
+
 # Types.
 Color = NewType('Color', tuple[str, str])
 ColorDict = NewType('ColorDict', dict[str, Color])

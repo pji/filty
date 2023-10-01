@@ -4,25 +4,27 @@ imgfilt
 
 Filter functions for image data.
 """
-import cv2                                          # type: ignore
-from PIL import Image, ImageOps                     # type: ignore
+import cv2
 import numpy as np
 import skimage.transform as sktf                    # type: ignore
+from numpy.typing import NDArray
+from PIL import Image, ImageOps
 
-from imgfilt.utility import (grayscale_to_rgb, uses_uint8, get_color_for_key,
-                             processes_by_grayscale_frame,
-                             trilinear_interpolation, X, Y, Z,
-                             bilinear_interpolation, will_square)
+from imgfilt.utility import *
+
+
+# Types.
+ImgAry = NDArray[np.float_]
 
 
 # Image filter functions.
 @processes_by_grayscale_frame
-def filter_box_blur(a: np.ndarray, size: int) -> np.ndarray:
+def filter_box_blur(a: ImgAry, size: int) -> ImgAry:
     """Perform a box blur.
 
     :param a: The image data to alter.
     :param size: The size of the blox used in the blur.
-    :returns: A :class:ndarray object.
+    :returns: A :class:`np.ndarray` object.
     :rtype: numpy.ndarray
     """
     kernel = np.ones((size, size), float) / size ** 2
@@ -31,10 +33,12 @@ def filter_box_blur(a: np.ndarray, size: int) -> np.ndarray:
 
 @processes_by_grayscale_frame
 @uses_uint8
-def filter_colorize(a: np.ndarray,
-                    colorkey: str = '',
-                    white: str = '#FFFFFF',
-                    black: str = '#000000') -> np.ndarray:
+def filter_colorize(
+    a: ImgAry,
+    colorkey: str = '',
+    white: str = '#FFFFFF',
+    black: str = '#000000'
+) -> ImgAry:
     """Colorize a grayscale image.
 
     :param a: The image data to alter.
@@ -47,7 +51,7 @@ def filter_colorize(a: np.ndarray,
     :param black: (Optional.) The color name for the color
         to use to replace black in the image. Color names
         are defined by PIL.ImageColor.
-    :returns: A :class:ndarray object.
+    :returns: A :class:`np.ndarray` object.
     :rtype: numpy.ndarray
     """
     src_space = 'L'
@@ -55,24 +59,24 @@ def filter_colorize(a: np.ndarray,
     if colorkey:
         white, black = get_color_for_key(colorkey)
     img = Image.fromarray(a, mode=src_space)
-    img = ImageOps.colorize(**{
-        'image': img,
-        'black': black,
-        'white': white,
-        'blackpoint': 0x00,
-        'midpoint': 0x7f,
-        'whitepoint': 0xff,
-    })
-    img = img.convert(dst_space)
+    colorized = ImageOps.colorize(
+        image=img,
+        black=black,
+        white=white,
+        blackpoint=0x00,
+        midpoint=0x7f,
+        whitepoint=0xff
+    )
+    img = colorized.convert(dst_space)
     out = np.array(img, dtype=a.dtype)
     return out
 
 
-def filter_contrast(a: np.ndarray) -> np.ndarray:
+def filter_contrast(a: ImgAry) -> ImgAry:
     """Adjust the image to fill the full dynamic range.
 
     :param a: The image data to alter.
-    :returns: A :class:ndarray object.
+    :returns: A :class:`np.ndarray` object.
     :rtype: numpy.ndarray
     """
     a_min = np.min(a)
@@ -84,18 +88,18 @@ def filter_contrast(a: np.ndarray) -> np.ndarray:
     return a
 
 
-def filter_flip(a: np.ndarray, axis: int) -> np.ndarray:
+def filter_flip(a: ImgAry, axis: int) -> ImgAry:
     """Flip the image around an axis.
 
     :param a: The image data to alter.
     :param axis: The axis to flip the image data around.
-    :returns: A :class:ndarray object.
+    :returns: A :class:`np.ndarray` object.
     :rtype: numpy.ndarray
     """
     return np.flip(a, axis)
 
 
-def filter_gaussian_blur(a: np.ndarray, sigma: float) -> np.ndarray:
+def filter_gaussian_blur(a: ImgAry, sigma: float) -> ImgAry:
     """Perform a gaussian blur.
 
     :param a: The image data to alter.
@@ -104,17 +108,17 @@ def filter_gaussian_blur(a: np.ndarray, sigma: float) -> np.ndarray:
         the image should affect the value of a pixel. Gaussian
         functions produce a normal distribution. This value is the
         size of a standard deviation in that normal distribution.
-    :returns: A :class:ndarray object.
+    :returns: A :class:`np.ndarray` object.
     :rtype: numpy.ndarray
     """
     return cv2.GaussianBlur(a, (0, 0), sigma, sigma, 0)
 
 
-def filter_glow(a: np.ndarray, sigma: int) -> np.ndarray:
+def filter_glow(a: ImgAry, sigma: int) -> ImgAry:
     """Use gaussian blurs to create a halo around brighter objects
     in the image.
     """
-    def _screen(a: np.ndarray, b: np.ndarray) -> np.ndarray:
+    def _screen(a: ImgAry, b: ImgAry) -> ImgAry:
         rev_a = 1 - a
         rev_b = 1 - b
         ab = rev_a * rev_b
@@ -130,13 +134,13 @@ def filter_glow(a: np.ndarray, sigma: int) -> np.ndarray:
     return b
 
 
-def filter_grow(a: np.ndarray, factor: float) -> np.ndarray:
+def filter_grow(a: ImgAry, factor: float) -> ImgAry:
     """Increase the size of an image.
 
     :param a: The image data to alter.
     :param factor: The scaling factor to use when increasing the
         size of the image.
-    :returns: A :class:ndarray object.
+    :returns: A :class:`np.ndarray` object.
     :rtype: numpy.ndarray
     """
     if len(a.shape) == 2:
@@ -144,11 +148,11 @@ def filter_grow(a: np.ndarray, factor: float) -> np.ndarray:
     return trilinear_interpolation(a, factor)
 
 
-def filter_inverse(a: np.ndarray) -> np.ndarray:
+def filter_inverse(a: ImgAry) -> ImgAry:
     """Inverse the colors of an image.
 
     :param a: The image data to alter.
-    :returns: A :class:ndarray object.
+    :returns: A :class:`np.ndarray` object.
     :rtype: numpy.ndarray
     """
     return 1 - a
@@ -156,12 +160,12 @@ def filter_inverse(a: np.ndarray) -> np.ndarray:
 
 @processes_by_grayscale_frame
 @will_square
-def filter_linear_to_polar(a: np.ndarray) -> np.ndarray:
+def filter_linear_to_polar(a: ImgAry) -> ImgAry:
     """Convert the linear coordinates of the image data to
     polar coordinates.
 
     :param a: The image data to alter.
-    :returns: A :class:ndarray object.
+    :returns: A :class:`np.ndarray` object.
     :rtype: numpy.ndarray
     """
     center = tuple(n / 2 for n in a.shape)
@@ -171,9 +175,11 @@ def filter_linear_to_polar(a: np.ndarray) -> np.ndarray:
 
 
 @processes_by_grayscale_frame
-def filter_motion_blur(a: np.ndarray,
-                       amount: int,
-                       axis: int) -> np.ndarray:
+def filter_motion_blur(
+    a: ImgAry,
+    amount: int,
+    axis: int
+) -> ImgAry:
     """Perform a motion blur.
 
     :param a: The image data to alter.
@@ -181,7 +187,7 @@ def filter_motion_blur(a: np.ndarray,
     :param direction: The axis that the blur should be performed along.
         The index should be indicated using the imgfilt.X or imgfilt.Y
         objects.
-    :returns: A :class:ndarray object.
+    :returns: A :class:`np.ndarray` object.
     :rtype: numpy.ndarray
     """
     kernel = np.zeros((amount, amount), float)
@@ -199,11 +205,13 @@ def filter_motion_blur(a: np.ndarray,
 
 
 @processes_by_grayscale_frame
-def filter_pinch(a: np.ndarray,
-                 amount: float,
-                 radius: float,
-                 scale: tuple[float],
-                 offset: tuple[int]) -> np.ndarray:
+def filter_pinch(
+    a: ImgAry,
+    amount: float,
+    radius: float,
+    scale: tuple[float],
+    offset: tuple[int]
+) -> ImgAry:
     """Distort an image to make it appear as though it is being
     pinched or swelling.
 
@@ -218,7 +226,7 @@ def filter_pinch(a: np.ndarray,
         distortion.
     :param offset: (Optional.) Sets how far the center of the
         distortion should be offset from the center of the image.
-    :returns: A :class:ndarray object.
+    :returns: A :class:`np.ndarray` object.
     :rtype: numpy.ndarray
     """
     # Set up for creating the maps.
@@ -260,12 +268,12 @@ def filter_pinch(a: np.ndarray,
 
 @processes_by_grayscale_frame
 @will_square
-def filter_polar_to_linear(a: np.ndarray) -> np.ndarray:
+def filter_polar_to_linear(a: ImgAry) -> ImgAry:
     """Convert the polar coordinates of the image data to
     linear coordinates.
 
     :param a: The image data to alter.
-    :returns: A :class:ndarray object.
+    :returns: A :class:`np.ndarray` object.
     :rtype: numpy.ndarray
     """
     center = tuple(n / 2 for n in a.shape)
@@ -274,11 +282,13 @@ def filter_polar_to_linear(a: np.ndarray) -> np.ndarray:
 
 
 @processes_by_grayscale_frame
-def filter_ripple(a: np.ndarray,
-                  wave: tuple[float],
-                  amp: tuple[float],
-                  distaxis: tuple[int, ...],
-                  offset: tuple[float, ...] = (0.0, 0.0, 0.0)) -> np.ndarray:
+def filter_ripple(
+    a: ImgAry,
+    wave: tuple[float],
+    amp: tuple[float],
+    distaxis: tuple[int, ...],
+    offset: tuple[float, ...] = (0.0, 0.0, 0.0)
+) -> ImgAry:
     """Perform a ripple distortion.
 
     :param a: The image data to alter.
@@ -298,7 +308,7 @@ def filter_ripple(a: np.ndarray,
         of the ripples in the image. There needs to be one value
         in the sequence per dimension in the image. The default
         value for all dimensions is zero.
-    :returns: A :class:ndarray object.
+    :returns: A :class:`np.ndarray` object.
     :rtype: numpy.ndarray
     """
     # Map out the volume of the given image and make sure everything is
@@ -324,7 +334,7 @@ def filter_ripple(a: np.ndarray,
     return cv2.remap(a, flex_x, flex_y, cv2.INTER_LINEAR)
 
 
-def filter_rotate_90(a: np.ndarray, direction: str = 'cw') -> np.ndarray:
+def filter_rotate_90(a: ImgAry, direction: str = 'cw') -> ImgAry:
     """Rotate the data 90° around the Z axis.
 
     :param a: The image data to alter.
@@ -343,12 +353,12 @@ def filter_rotate_90(a: np.ndarray, direction: str = 'cw') -> np.ndarray:
 
 
 @processes_by_grayscale_frame
-def filter_skew(a: np.ndarray, slope: float) -> np.ndarray:
+def filter_skew(a: ImgAry, slope: float) -> ImgAry:
     """Perform a skew distort on the data.
 
     :param a: The image data to alter.
     :param slope: The slope of the Y axis of the image after the skew.
-    :returns: A :class:ndarray object.
+    :returns: A :class:`np.ndarray` object.
     :rtype: numpy.ndarray
     """
     # Create the transform matrix by defining three points in the
@@ -377,10 +387,12 @@ def filter_skew(a: np.ndarray, slope: float) -> np.ndarray:
 
 
 @processes_by_grayscale_frame
-def filter_twirl(a: np.ndarray,
-                 radius: float,
-                 strength: float,
-                 offset: tuple[int, int] = (0, 0)) -> np.ndarray:
+def filter_twirl(
+    a: ImgAry,
+    radius: float,
+    strength: float,
+    offset: tuple[int, int] = (0, 0)
+) -> ImgAry:
     """Swirl the image data.
 
     :param a: The image data to alter.
@@ -391,7 +403,7 @@ def filter_twirl(a: np.ndarray,
         around the center of the distortion.
     :param offset: (Optional.) How far to offset the center of the
         distortion from the center of the image.
-    :returns: A :class:ndarray object.
+    :returns: A :class:`np.ndarray` object.
     :rtype: numpy.ndarray
     """
     # Determine the location of the center of the twirl effect.

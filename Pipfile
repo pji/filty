@@ -19,6 +19,7 @@ tox = "*"
 rstcheck = {extras = ["toml", "sphinx"], version = "*"}
 twine = "*"
 imgfilt = {file = ".", editable = true}
+types-pillow = "*"
 
 [requires]
 python_version = "3.9"
