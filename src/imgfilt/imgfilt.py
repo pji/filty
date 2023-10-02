@@ -117,12 +117,21 @@ def filter_gaussian_blur(a: ImgAry, sigma: float) -> ImgAry:
 def filter_glow(a: ImgAry, sigma: int) -> ImgAry:
     """Use gaussian blurs to create a halo around brighter objects
     in the image.
+
+    :param a: The image data to alter.
+    :param sigma: The sigma value of the blur. A gaussian blur uses a
+        gaussian function to determine how much the other pixels in
+        the image should affect the value of a pixel. Gaussian
+        functions produce a normal distribution. This value is the
+        size of a standard deviation in that normal distribution.
+    :returns: A :class:`np.ndarray` object.
+    :rtype: numpy.ndarray
     """
     def _screen(a: ImgAry, b: ImgAry) -> ImgAry:
         rev_a = 1 - a
         rev_b = 1 - b
         ab = rev_a * rev_b
-        return 1 - ab
+        return 1.0 - ab
 
     b = a.copy()
     while sigma > 0:
