@@ -6,9 +6,11 @@ Utility functions for the imgfilt module.
 """
 from functools import wraps
 from inspect import getmembers, isfunction
-from typing import Callable, NewType
+from typing import Callable, NewType, Union
+from typing_extensions import Protocol
 
 import numpy as np
+from numpy.typing import NDArray
 
 
 # Exportable names.
@@ -22,6 +24,15 @@ __all__ = [
 # Types.
 Color = NewType('Color', tuple[str, str])
 ColorDict = NewType('ColorDict', dict[str, Color])
+Filter = Callable
+ImgAry = NDArray[np.float_]
+Numeric = Union[
+    np.int_,
+    np.uint8,
+    np.float_,
+    np.float32,
+    np.float64
+]
 
 
 # Useful constants.
@@ -112,7 +123,7 @@ def get_color_for_key(colorkey: str) -> Color:
     return COLORS[colorkey]
 
 
-def grayscale_to_rgb(a: np.ndarray) -> np.ndarray:
+def grayscale_to_rgb(a: NDArray[Numeric]) -> NDArray[Numeric]:
     """Convert a grayscale image to RGB."""
     new_shape = (*a.shape, 3)
     new_a = np.zeros(new_shape, dtype=a.dtype)
@@ -122,7 +133,9 @@ def grayscale_to_rgb(a: np.ndarray) -> np.ndarray:
 
 
 # Debugging functions.
-def print_array(a: np.ndarray, depth: int = 0, color: bool = True) -> None:
+def print_array(
+    a: NDArray[Numeric], depth: int = 0, color: bool = True
+) -> None:
     """Write the values of the given array to stdout."""
     if len(a.shape) > 1:
         print(' ' * (4 * depth) + '[')
@@ -140,7 +153,7 @@ def print_array(a: np.ndarray, depth: int = 0, color: bool = True) -> None:
 
 
 # Decorators.
-def processes_by_grayscale_frame(fn:Callable) -> Callable:
+def processes_by_grayscale_frame(fn: Filter) -> Filter:
     """If the given array is more than two dimensions, iterate
     through each two dimensional slice. This is used when the
     filter can't handle more than two dimensions in an array.
@@ -156,7 +169,7 @@ def processes_by_grayscale_frame(fn:Callable) -> Callable:
     return wrapper
 
 
-def uses_uint8(fn: Callable) -> Callable:
+def uses_uint8(fn: Filter) -> Filter:
     """Converts the image data from floats to ints."""
     @wraps(fn)
     def wrapper(a: np.ndarray, *args, **kwargs) -> np.ndarray:
@@ -177,7 +190,7 @@ def uses_uint8(fn: Callable) -> Callable:
     return wrapper
 
 
-def will_square(fn: Callable) -> Callable:
+def will_square(fn: Filter) -> Filter:
     """The array needs to have equal sized X and Y axes. The result
     will be sliced to the size of the original array.
     """
@@ -225,7 +238,7 @@ def get_prefixed_functions(prefix: str, obj: object) -> dict:
 
 
 # Interpolation functions.
-def bilinear_interpolation(a: np.ndarray, factor: float) -> np.ndarray:
+def bilinear_interpolation(a: ImgAry, factor: float) -> ImgAry:
     """Resize an two dimensional array using trilinear
     interpolation.
 
@@ -329,7 +342,7 @@ def bilinear_interpolation(a: np.ndarray, factor: float) -> np.ndarray:
     return lerp(x1, x2, parts[Y])
 
 
-def lerp(a: np.ndarray, b: np.ndarray, x: np.ndarray) -> np.ndarray:
+def lerp(a: ImgAry, b: ImgAry, x: np.ndarray) -> ImgAry:
     """Perform a linear interpolation on the values of two arrays
 
     :param a: The "left" values.
@@ -352,7 +365,7 @@ def lerp(a: np.ndarray, b: np.ndarray, x: np.ndarray) -> np.ndarray:
     return a.astype(float) * (1 - x.astype(float)) + b.astype(float) * x
 
 
-def trilinear_interpolation(a: np.ndarray, factor: float) -> np.ndarray:
+def trilinear_interpolation(a: ImgAry, factor: float) -> ImgAry:
     """Resize an three dimensional array using trilinear
     interpolation.
 
