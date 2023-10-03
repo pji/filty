@@ -1,5 +1,5 @@
 -i https://pypi.org/simple
-imageio==2.31.4; python_version >= '3.8'
+imageio==2.31.5; python_version >= '3.8'
 lazy-loader==0.3; python_version >= '3.7'
 networkx==3.1; python_version >= '3.8'
 numpy==1.26.0; python_version < '3.13' and python_version >= '3.9'
