@@ -22,6 +22,11 @@ ImgAry = NDArray[np.float_]
 def filter_box_blur(a: ImgAry, size: int) -> ImgAry:
     """Perform a box blur.
 
+    .. figure:: images/filter_box_blur.jpg
+       :alt: An example of the filter affecting a series of bars.
+       
+       An example of :func:`filter_box_blur` affecting an image.
+    
     :param a: The image data to alter.
     :param size: The size of the blox used in the blur.
     :returns: A :class:`np.ndarray` object.
@@ -41,6 +46,11 @@ def filter_colorize(
 ) -> ImgAry:
     """Colorize a grayscale image.
 
+    .. figure:: images/filter_colorize.jpg
+       :alt: An example of the filter affecting a series of bars.
+       
+       An example of :func:`filter_colorize` affecting an image.
+    
     :param a: The image data to alter.
     :param colorkey: (Optional.) The key for the pre-defined
         colors to use in the colorization. These are defined
@@ -75,6 +85,11 @@ def filter_colorize(
 def filter_contrast(a: ImgAry) -> ImgAry:
     """Adjust the image to fill the full dynamic range.
 
+    .. figure:: images/filter_contrast.jpg
+       :alt: An example of the filter affecting a series of bars.
+       
+       An example of :func:`filter_contrast` affecting an image.
+    
     :param a: The image data to alter.
     :returns: A :class:`np.ndarray` object.
     :rtype: numpy.ndarray
@@ -91,6 +106,11 @@ def filter_contrast(a: ImgAry) -> ImgAry:
 def filter_flip(a: ImgAry, axis: int) -> ImgAry:
     """Flip the image around an axis.
 
+    .. figure:: images/filter_flip.jpg
+       :alt: An example of the filter affecting a series of bars.
+       
+       An example of :func:`filter_flip` affecting an image.
+    
     :param a: The image data to alter.
     :param axis: The axis to flip the image data around.
     :returns: A :class:`np.ndarray` object.
@@ -102,15 +122,26 @@ def filter_flip(a: ImgAry, axis: int) -> ImgAry:
 def filter_gaussian_blur(a: ImgAry, sigma: float) -> ImgAry:
     """Perform a gaussian blur.
 
+    .. figure:: images/filter_gaussian_blur.jpg
+       :alt: An example of the filter affecting a series of bars.
+       
+       An example of :func:`filter_gaussian_blur` affecting an image.
+    
     :param a: The image data to alter.
     :param sigma: The sigma value of the blur. A gaussian blur uses a
         gaussian function to determine how much the other pixels in
         the image should affect the value of a pixel. Gaussian
         functions produce a normal distribution. This value is the
         size of a standard deviation in that normal distribution.
-    :returns: A :class:`np.ndarray` object.
+    :returns: A :class:`numpy.ndarray` object.
     :rtype: numpy.ndarray
     """
+    if len(a.shape) == 3 and a.shape[-1] != 3:
+        result = np.zeros(a.shape, dtype=a.dtype)
+        for i, z in enumerate(a):
+            result[i] = filter_gaussian_blur(z, sigma=sigma)
+        return result
+    
     return cv2.GaussianBlur(a, (0, 0), sigma, sigma, 0)
 
 
@@ -421,9 +452,24 @@ def filter_twirl(
 
 
 if __name__ == '__main__':
-    from tests.common import A, E, F, VIDEO_2_5_5       # type: ignore
     from imgfilt.utility import print_array
 
+    VIDEO_2_5_5 = np.array([
+        [
+            [0.00, 0.25, 0.50, 0.75, 1.00,],
+            [0.25, 0.50, 0.75, 1.00, 0.75,],
+            [0.50, 0.75, 1.00, 0.75, 0.50,],
+            [0.75, 1.00, 0.75, 0.50, 0.25,],
+            [1.00, 0.75, 0.50, 0.25, 0.00,],
+        ],
+        [
+            [1.00, 0.75, 0.50, 0.25, 0.00,],
+            [0.75, 1.00, 0.75, 0.50, 0.25,],
+            [0.50, 0.75, 1.00, 0.75, 0.50,],
+            [0.25, 0.50, 0.75, 1.00, 0.75,],
+            [0.00, 0.25, 0.50, 0.75, 1.00,],
+        ],
+    ], dtype=float)
     filter = filter_glow
     kwargs = {
         'a': VIDEO_2_5_5.copy(),

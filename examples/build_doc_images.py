@@ -18,18 +18,27 @@ X, Y, Z = -1, -2, -3
 
 
 # Make the example images.
-def make_image(filter: Callable, kwargs: dict, size: ig.Size) -> ig.ImgAry:
+def make_image(
+    filter: Callable, kwargs: dict, size: ig.Size, color: bool = False
+) -> ig.ImgAry:
     """Make an example image for a filter."""
     # Create image.
     source = ig.Lines('v')
     a = source.fill(size)
+    a /= 2
+    a += 0.25
     
     # Filter the bottom half.
     midheight = size[Y] // 2
-    a[:, midheight:, ...] = filter(a[:, midheight:, ...], **kwargs)
+    filtered = filter(a[:, midheight:, :], **kwargs)
+    if color:
+        a = ift.filter_colorize(a)
+    a[:, midheight:, :] = filtered
     
     # Add the label.
     label, ystart, ystop = make_label(size)
+    if color:
+        label = ift.filter_colorize(label)
     a[:, ystart:ystop, :] = label
     return a
 
@@ -37,11 +46,15 @@ def make_image(filter: Callable, kwargs: dict, size: ig.Size) -> ig.ImgAry:
 def make_images(path: Path, size: ig.Size, ext: str = 'jpg') -> None:
     """Make the example images."""
     filters = [
-        (ift.filter_box_blur, {'size': size[X] // 32,}),
+        (ift.filter_box_blur, {'size': size[X] // 32,}, False),
+        (ift.filter_colorize, {'colorkey': 'g',}, True),
+        (ift.filter_contrast, {}, False),
+        (ift.filter_flip, {'axis': X,}, False),
+        (ift.filter_gaussian_blur, {'sigma': 12.0,}, False),
     ]
     for item in filters:
-        filter, kwargs = item
-        a = make_image(filter, kwargs, size)
+        filter, kwargs, color = item
+        a = make_image(filter, kwargs, size, color)
         fname = f'{filter.__name__}.{ext}'
         iw.write(path / fname, a)
 

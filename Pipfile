@@ -22,6 +22,7 @@ imgfilt = {file = ".", editable = true}
 types-pillow = "*"
 imggen = {file = "../imggen", editable = true}
 imgwriter = {file = "../imgwriter", editable = true}
+furo = "*"
 
 [requires]
 python_version = "3.9"
