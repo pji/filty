@@ -23,17 +23,31 @@ def make_image(
 ) -> ig.ImgAry:
     """Make an example image for a filter."""
     # Create image.
-    source = ig.Lines('v')
+    source = ig.Spheres(radius=51, offset='x')
     a = source.fill(size)
     a /= 2
     a += 0.25
     
-    # Filter the bottom half.
-    midheight = size[Y] // 2
-    filtered = filter(a[:, midheight:, :], **kwargs)
+    # Filter the image data.
+    filtered = filter(a, **kwargs)
+    
+    # Because we are putting the filtered data back into the bottom half
+    # of the original data, work needs to be done to make sure the shape
+    # of the filtered data matches the shape of the bottom half of the
+    # original data.
     if color:
         a = ift.filter_colorize(a)
-    a[:, midheight:, :] = filtered
+    if filtered.shape != a.shape and not color:
+        diffs = [an - fn for an, fn in zip(filtered.shape, a.shape)]
+        starts = [n // 2 for n in diffs]
+        stops = [sn + an for an, sn in zip(a.shape, starts)]
+        filtered = filtered[
+            starts[Z]:stops[Z], starts[Y]:stops[Y], starts[X]:stops[X]
+        ]
+    
+    # Replace the bottom half of the image data with the filtered data.
+    midheight = size[Y] // 2
+    a[:, midheight:, :] = filtered[:, midheight:, :]
     
     # Add the label.
     label, ystart, ystop = make_label(size)
@@ -51,6 +65,23 @@ def make_images(path: Path, size: ig.Size, ext: str = 'jpg') -> None:
         (ift.filter_contrast, {}, False),
         (ift.filter_flip, {'axis': X,}, False),
         (ift.filter_gaussian_blur, {'sigma': 12.0,}, False),
+        (ift.filter_glow, {'sigma': 3,}, False),
+        (ift.filter_grow, {'factor': 2,}, False),
+        (ift.filter_inverse, {}, False),
+        (ift.filter_linear_to_polar, {}, False),
+        (ift.filter_motion_blur, {'amount': size[X] // 32, 'axis': X}, False),
+        (ift.filter_pinch, {
+            'amount': 0.5,
+            'radius': size[X] // 3,
+            'scale': (0, 0.5, 0.5),
+            'offset': (0, 0, 0)
+        }, False),
+        (ift.filter_polar_to_linear, {}, False),
+        (ift.filter_ripple, {
+            'wave': (0, size[Y] // 5, size[Y] // 5),
+            'amp': (0, size[Y] // 80, size[Y] // 80),
+            'distaxis': (Z, Y, X),
+        }, False),
     ]
     for item in filters:
         filter, kwargs, color = item

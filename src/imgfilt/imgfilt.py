@@ -23,7 +23,7 @@ def filter_box_blur(a: ImgAry, size: int) -> ImgAry:
     """Perform a box blur.
 
     .. figure:: images/filter_box_blur.jpg
-       :alt: An example of the filter affecting a series of bars.
+       :alt: An example of the filter affecting an image.
        
        An example of :func:`filter_box_blur` affecting an image.
     
@@ -47,7 +47,7 @@ def filter_colorize(
     """Colorize a grayscale image.
 
     .. figure:: images/filter_colorize.jpg
-       :alt: An example of the filter affecting a series of bars.
+       :alt: An example of the filter affecting an image.
        
        An example of :func:`filter_colorize` affecting an image.
     
@@ -86,7 +86,7 @@ def filter_contrast(a: ImgAry) -> ImgAry:
     """Adjust the image to fill the full dynamic range.
 
     .. figure:: images/filter_contrast.jpg
-       :alt: An example of the filter affecting a series of bars.
+       :alt: An example of the filter affecting an image.
        
        An example of :func:`filter_contrast` affecting an image.
     
@@ -107,7 +107,7 @@ def filter_flip(a: ImgAry, axis: int) -> ImgAry:
     """Flip the image around an axis.
 
     .. figure:: images/filter_flip.jpg
-       :alt: An example of the filter affecting a series of bars.
+       :alt: An example of the filter affecting an image.
        
        An example of :func:`filter_flip` affecting an image.
     
@@ -123,7 +123,7 @@ def filter_gaussian_blur(a: ImgAry, sigma: float) -> ImgAry:
     """Perform a gaussian blur.
 
     .. figure:: images/filter_gaussian_blur.jpg
-       :alt: An example of the filter affecting a series of bars.
+       :alt: An example of the filter affecting an image.
        
        An example of :func:`filter_gaussian_blur` affecting an image.
     
@@ -149,6 +149,11 @@ def filter_glow(a: ImgAry, sigma: int) -> ImgAry:
     """Use gaussian blurs to create a halo around brighter objects
     in the image.
 
+    .. figure:: images/filter_glow.jpg
+       :alt: An example of the filter affecting an image.
+       
+       An example of :func:`filter_gaussian_blur` affecting an image.
+    
     :param a: The image data to alter.
     :param sigma: The sigma value of the blur. A gaussian blur uses a
         gaussian function to determine how much the other pixels in
@@ -177,6 +182,11 @@ def filter_glow(a: ImgAry, sigma: int) -> ImgAry:
 def filter_grow(a: ImgAry, factor: float) -> ImgAry:
     """Increase the size of an image.
 
+    .. figure:: images/filter_grow.jpg
+       :alt: An example of the filter affecting an image.
+       
+       An example of :func:`filter_grow` affecting an image.
+    
     :param a: The image data to alter.
     :param factor: The scaling factor to use when increasing the
         size of the image.
@@ -191,6 +201,11 @@ def filter_grow(a: ImgAry, factor: float) -> ImgAry:
 def filter_inverse(a: ImgAry) -> ImgAry:
     """Inverse the colors of an image.
 
+    .. figure:: images/filter_inverse.jpg
+       :alt: An example of the filter affecting an image.
+       
+       An example of :func:`filter_inverse` affecting an image.
+    
     :param a: The image data to alter.
     :returns: A :class:`np.ndarray` object.
     :rtype: numpy.ndarray
@@ -204,6 +219,11 @@ def filter_linear_to_polar(a: ImgAry) -> ImgAry:
     """Convert the linear coordinates of the image data to
     polar coordinates.
 
+    .. figure:: images/filter_linear_to_polar.jpg
+       :alt: An example of the filter affecting an image.
+       
+       An example of :func:`filter_linear_to_polar` affecting an image.
+    
     :param a: The image data to alter.
     :returns: A :class:`np.ndarray` object.
     :rtype: numpy.ndarray
@@ -222,6 +242,11 @@ def filter_motion_blur(
 ) -> ImgAry:
     """Perform a motion blur.
 
+    .. figure:: images/filter_motion_blur.jpg
+       :alt: An example of the filter affecting an image.
+       
+       An example of :func:`filter_motion_blur` affecting an image.
+    
     :param a: The image data to alter.
     :param size: The size of the blur to apply.
     :param direction: The axis that the blur should be performed along.
@@ -250,11 +275,16 @@ def filter_pinch(
     amount: float,
     radius: float,
     scale: tuple[float],
-    offset: tuple[int]
+    offset: tuple[int] = (0.0, 0.0, 0.0)
 ) -> ImgAry:
     """Distort an image to make it appear as though it is being
     pinched or swelling.
 
+    .. figure:: images/filter_pinch.jpg
+       :alt: An example of the filter affecting an image.
+       
+       An example of :func:`filter_pinch` affecting an image.
+    
     :param a: The image data to alter.
     :param amount: How much the image should be distorted. Best results
         seem to be with numbers in the range of -1 <= x <= 1.
@@ -312,6 +342,11 @@ def filter_polar_to_linear(a: ImgAry) -> ImgAry:
     """Convert the polar coordinates of the image data to
     linear coordinates.
 
+    .. figure:: images/filter_polar_to_linear.jpg
+       :alt: An example of the filter affecting an image.
+       
+       An example of :func:`filter_polar_to_linear` affecting an image.
+    
     :param a: The image data to alter.
     :returns: A :class:`np.ndarray` object.
     :rtype: numpy.ndarray
@@ -331,6 +366,11 @@ def filter_ripple(
 ) -> ImgAry:
     """Perform a ripple distortion.
 
+    .. figure:: images/filter_ripple.jpg
+       :alt: An example of the filter affecting an image.
+       
+       An example of :func:`filter_ripple` affecting an image.
+    
     :param a: The image data to alter.
     :param wave: The distance between peaks in the distortion.
         There needs to be one value in the sequence per dimension
@@ -342,8 +382,7 @@ def filter_ripple(
         same axis being distorted, causing the pattern to bunch up
         like it is rippling, or along a different axis, causing the
         pattern to wave like it's the cross-section of a wave. The
-        value "cross" uses different axis. By convention, use "same"
-        or an empty string to use the same axis.
+        values are the indexes of the axis to distort along.
     :param offset: (Optional.) The amount to offset the location
         of the ripples in the image. There needs to be one value
         in the sequence per dimension in the image. The default
@@ -360,8 +399,8 @@ def filter_ripple(
     # Modify the mapping to apply the ripple to create the flex
     # maps for cv.remap. The flex map value for each pixel will
     # indicate how far that pixel moves in the remapped image.
-    da_x, da_y, *_ = distaxis
-    off_y, off_x, *_ = offset
+    *_, da_x, da_y = distaxis
+    *_, off_y, off_x = offset
     if wave[X]:
         flex_x = np.cos((off_x + flex[da_x]) / wave[X] * 2 * np.pi)
         flex_x = flex[X] + flex_x * amp[X]

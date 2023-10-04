@@ -24,3 +24,4 @@ for convenience, but they can also be called directly.
 .. autofunction:: imgfilt.filter_contrast
 .. autofunction:: imgfilt.filter_flip
 .. autofunction:: imgfilt.filter_gaussian_blur
+.. autofunction:: imgfilt.filter_glow
