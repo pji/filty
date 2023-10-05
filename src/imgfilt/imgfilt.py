@@ -4,6 +4,8 @@ imgfilt
 
 Filter functions for image data.
 """
+from typing import Sequence
+
 import cv2
 import numpy as np
 import skimage.transform as sktf                    # type: ignore
@@ -15,6 +17,8 @@ from imgfilt.utility import *
 
 # Types.
 ImgAry = NDArray[np.float_]
+Loc = Sequence[int]
+Size = Sequence[int]
 
 
 # Image filter functions.
@@ -274,8 +278,8 @@ def filter_pinch(
     a: ImgAry,
     amount: float,
     radius: float,
-    scale: tuple[float],
-    offset: tuple[int] = (0.0, 0.0, 0.0)
+    scale: Sequence[float],
+    offset: Loc = (0, 0, 0)
 ) -> ImgAry:
     """Distort an image to make it appear as though it is being
     pinched or swelling.
@@ -359,10 +363,10 @@ def filter_polar_to_linear(a: ImgAry) -> ImgAry:
 @processes_by_grayscale_frame
 def filter_ripple(
     a: ImgAry,
-    wave: tuple[float],
-    amp: tuple[float],
-    distaxis: tuple[int, ...],
-    offset: tuple[float, ...] = (0.0, 0.0, 0.0)
+    wave: Sequence[float],
+    amp: Sequence[float],
+    distaxis: Sequence[int],
+    offset: Loc = (0, 0, 0)
 ) -> ImgAry:
     """Perform a ripple distortion.
 
@@ -416,6 +420,11 @@ def filter_ripple(
 def filter_rotate_90(a: ImgAry, direction: str = 'cw') -> ImgAry:
     """Rotate the data 90° around the Z axis.
 
+    .. figure:: images/filter_rotate_90.jpg
+       :alt: An example of the filter affecting an image.
+       
+       An example of :func:`filter_filter_rotate_90` affecting an image.
+    
     :param a: The image data to alter.
     :param direction: (Optional.) Whether to rotate the data
         clockwise or counter clockwise.
@@ -423,10 +432,7 @@ def filter_rotate_90(a: ImgAry, direction: str = 'cw') -> ImgAry:
     :rtype: A :class:numpy.ndarray object.
     """
     spin = -1
-    if (direction == 'ccw'
-            or direction == 'counter clockwise'
-            or direction == 'l'
-            or direction == 'left'):
+    if direction in ['ccw', 'counter clockwise', 'l', 'left']:
         spin = 1
     return np.rot90(a, spin, (Y, X))
 
@@ -435,6 +441,11 @@ def filter_rotate_90(a: ImgAry, direction: str = 'cw') -> ImgAry:
 def filter_skew(a: ImgAry, slope: float) -> ImgAry:
     """Perform a skew distort on the data.
 
+    .. figure:: images/filter_skew.jpg
+       :alt: An example of the filter affecting an image.
+       
+       An example of :func:`filter_skew` affecting an image.
+    
     :param a: The image data to alter.
     :param slope: The slope of the Y axis of the image after the skew.
     :returns: A :class:`np.ndarray` object.
@@ -474,6 +485,11 @@ def filter_twirl(
 ) -> ImgAry:
     """Swirl the image data.
 
+    .. figure:: images/filter_twirl.jpg
+       :alt: An example of the filter affecting an image.
+       
+       An example of :func:`filter_twirl` affecting an image.
+    
     :param a: The image data to alter.
     :param radius: The location of the edge of the distortion. This
         is measured from the center of the distortion.

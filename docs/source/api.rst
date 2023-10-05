@@ -25,3 +25,13 @@ for convenience, but they can also be called directly.
 .. autofunction:: imgfilt.filter_flip
 .. autofunction:: imgfilt.filter_gaussian_blur
 .. autofunction:: imgfilt.filter_glow
+.. autofunction:: imgfilt.filter_grow
+.. autofunction:: imgfilt.filter_inverse
+.. autofunction:: imgfilt.filter_linear_to_polar
+.. autofunction:: imgfilt.filter_motion_blur
+.. autofunction:: imgfilt.filter_pinch
+.. autofunction:: imgfilt.filter_polar_to_linear
+.. autofunction:: imgfilt.filter_ripple
+.. autofunction:: imgfilt.filter_rotate_90
+.. autofunction:: imgfilt.filter_skew
+.. autofunction:: imgfilt.filter_twirl

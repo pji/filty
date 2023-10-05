@@ -9,6 +9,7 @@ from typing import Callable
 
 import imggen as ig
 import imgwriter as iw
+import numpy as np
 
 import imgfilt as ift
 
@@ -24,7 +25,18 @@ def make_image(
     """Make an example image for a filter."""
     # Create image.
     source = ig.Spheres(radius=51, offset='x')
+    text = ig.Text(
+        'SPAM',
+        font='Menlo',
+        size=525,
+        face=1,
+        origin=(0, 60),
+        fill_color=0.25,
+        bg_color=0.0,
+        align='center'
+    )
     a = source.fill(size)
+    a += text.fill(size)
     a /= 2
     a += 0.25
     
@@ -37,12 +49,19 @@ def make_image(
     # original data.
     if color:
         a = ift.filter_colorize(a)
+        
     if filtered.shape != a.shape and not color:
-        diffs = [an - fn for an, fn in zip(filtered.shape, a.shape)]
-        starts = [n // 2 for n in diffs]
-        stops = [sn + an for an, sn in zip(a.shape, starts)]
-        filtered = filtered[
-            starts[Z]:stops[Z], starts[Y]:stops[Y], starts[X]:stops[X]
+        mshape = tuple(max(a, b) for a, b in zip(a.shape, filtered.shape))
+        m = np.zeros(mshape, dtype=filtered.dtype)
+        mstarts = [(mn - fn) // 2 for mn, fn in zip(mshape, filtered.shape)]
+        mstops = [ms + fn for ms, fn in zip(mstarts, filtered.shape)]
+        m[
+            mstarts[Z]:mstops[Z], mstarts[Y]:mstops[Y], mstarts[X]:mstops[X]
+        ] = filtered
+        fstarts = [(mn - an) // 2 for mn, an in zip(mshape, a.shape)]
+        fstops = [sn + an for sn, an in zip(fstarts, a.shape)]
+        filtered = m[
+            fstarts[Z]:fstops[Z], fstarts[Y]:fstops[Y], fstarts[X]:fstops[X]
         ]
     
     # Replace the bottom half of the image data with the filtered data.
@@ -81,6 +100,12 @@ def make_images(path: Path, size: ig.Size, ext: str = 'jpg') -> None:
             'wave': (0, size[Y] // 5, size[Y] // 5),
             'amp': (0, size[Y] // 80, size[Y] // 80),
             'distaxis': (Z, Y, X),
+        }, False),
+        (ift.filter_rotate_90, {}, False),
+        (ift.filter_skew, {'slope': 0.25,}, False),
+        (ift.filter_twirl, {
+            'radius': size[X],
+            'strength': 3,
         }, False),
     ]
     for item in filters:

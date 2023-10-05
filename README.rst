@@ -67,3 +67,6 @@ The following updates were included in v0.0.2:
 *   Set up `tox`.
 *   Build documentation.
 *   Build examples.
+*   Gaussian blur handles three-dimensional data.
+*   Pinch has default for offset.
+*   Ripple handles passed sequences more predictably.
