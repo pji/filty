@@ -4,6 +4,8 @@ build_doc_images
 
 Build the documentation images for :mod:`imgfilt`.
 """
+from argparse import ArgumentParser
+from copy import deepcopy
 from pathlib import Path
 from typing import Callable
 
@@ -19,11 +21,8 @@ X, Y, Z = -1, -2, -3
 
 
 # Make the example images.
-def make_image(
-    filter: Callable, kwargs: dict, size: ig.Size, color: bool = False
-) -> ig.ImgAry:
-    """Make an example image for a filter."""
-    # Create image.
+def make_base_image(size: ig.Size) -> ig.ImgAry:
+    """Make the base image to run filters on."""
     source = ig.Hexes(radius=51)
     text = ig.Text(
         'SPAM',
@@ -39,7 +38,17 @@ def make_image(
     a += text.fill(size)
     a /= 2
     a += 0.25
-    
+    return a
+
+
+def make_image(
+    a: ig.ImgAry,
+    filter: Callable,
+    kwargs: dict,
+    size: ig.Size,
+    color: bool = False
+) -> ig.ImgAry:
+    """Make an example image for a filter."""
     # Filter the image data.
     filtered = filter(a, **kwargs)
     
@@ -109,10 +118,13 @@ def make_images(path: Path, size: ig.Size, ext: str = 'jpg') -> None:
         }, False),
     ]
     for item in filters:
+        a = make_base_image(size)
         filter, kwargs, color = item
-        a = make_image(filter, kwargs, size, color)
         fname = f'{filter.__name__}.{ext}'
+        print(f'Making {fname}...')
+        a = make_image(a, filter, kwargs, size, color)
         iw.write(path / fname, a)
+        print(f'{fname} made.')
 
 
 def make_label(size: ig.Size) -> tuple[ig.ImgAry, int, int]:
@@ -152,7 +164,28 @@ def make_label(size: ig.Size) -> tuple[ig.ImgAry, int, int]:
 
 # Mainline.
 if __name__ == '__main__':
-    path = Path('docs/source/images')
-    size = (1, 720, 1280)
+    p = ArgumentParser(
+        description='Generate images for the documentation for imggen.',
+        prog='imggen'
+    )
+    p.add_argument(
+        '--outdir', '-o',
+        action='store',
+        default=Path('docs/source/images'),
+        help='The directory to save the images.',
+        type=Path
+    )
+    p.add_argument(
+        '--size', '-s',
+        action='store',
+        default=(1280, 720),
+        help='The height and width dimensions of the images.',
+        nargs=2,
+        type=int
+    )
+    args = p.parse_args()
+
+    size = (1, args.size[1], args.size[0])
+    path = args.outdir
     make_images(path, size)
     

@@ -8,7 +8,7 @@ from typing import Sequence
 
 import cv2
 import numpy as np
-import skimage.transform as sktf                    # type: ignore
+import skimage.transform as sktf  # type: ignore
 from numpy.typing import NDArray
 from PIL import Image, ImageOps
 

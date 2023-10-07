@@ -39,12 +39,18 @@ this repository.
 
 How do I run the tests?
 ***********************
-The `precommit.py` script in the root of the repository will run the
-unit tests and a few other tests beside. Otherwise, the unit tests
-are written with the standard unittest module, so you can run the
-tests with::
+The `Makefile` in the root of the repository is set up to simplify
+testing. To run just the unit tests::
 
-    python -m unittest discover tests
+    make test
+
+To run the verbose version of the unit tests::
+
+    make testv
+
+To run the full suite of tests and checks::
+
+    make pre
 
 
 How do I contribute?
@@ -70,3 +76,4 @@ The following updates were included in v0.0.2:
 *   Gaussian blur handles three-dimensional data.
 *   Pinch has default for offset.
 *   Ripple handles passed sequences more predictably.
+*   Contrast can be passed white and black points.

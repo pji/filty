@@ -7,10 +7,10 @@ Utility functions for the imgfilt module.
 from functools import wraps
 from inspect import getmembers, isfunction
 from typing import Callable, NewType, Union
-from typing_extensions import Protocol
 
 import numpy as np
 from numpy.typing import NDArray
+from typing_extensions import Protocol
 
 
 # Exportable names.
