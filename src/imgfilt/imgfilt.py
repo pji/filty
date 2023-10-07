@@ -109,6 +109,8 @@ def filter_contrast(
     if scale != 0:
         a = a - a_min
         a = a / scale
+    else:
+        a = 0.5
     
     # Scale to the destination range.
     dest_scale = white - black

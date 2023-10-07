@@ -29,6 +29,7 @@ clean:
 
 .PHONY: docs
 docs:
+	python examples/build_doc_images.py
 	rm -rf docs/build/html
 	sphinx-build -b html docs/source/ docs/build/html
 

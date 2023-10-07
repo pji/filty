@@ -24,7 +24,7 @@ def make_image(
 ) -> ig.ImgAry:
     """Make an example image for a filter."""
     # Create image.
-    source = ig.Spheres(radius=51, offset='x')
+    source = ig.Hexes(radius=51)
     text = ig.Text(
         'SPAM',
         font='Menlo',
