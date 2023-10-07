@@ -86,7 +86,9 @@ def filter_colorize(
     return out
 
 
-def filter_contrast(a: ImgAry) -> ImgAry:
+def filter_contrast(
+    a: ImgAry, black: float = 0.0, white: float = 1.0
+) -> ImgAry:
     """Adjust the image to fill the full dynamic range.
 
     .. figure:: images/filter_contrast.jpg
@@ -95,15 +97,24 @@ def filter_contrast(a: ImgAry) -> ImgAry:
        An example of :func:`filter_contrast` affecting an image.
     
     :param a: The image data to alter.
+    :param black: (Optional.) The minimum value in the output.
+    :param white: (Optional.) The maximum value in the output.
     :returns: A :class:`np.ndarray` object.
     :rtype: numpy.ndarray
     """
+    # Normalize the values to a scale from 0.0 to 1.0.
     a_min = np.min(a)
     a_max = np.max(a)
     scale = a_max - a_min
     if scale != 0:
         a = a - a_min
         a = a / scale
+    
+    # Scale to the destination range.
+    dest_scale = white - black
+    if dest_scale != 1.0:
+        a = a * dest_scale
+        a += black
     return a
 
 

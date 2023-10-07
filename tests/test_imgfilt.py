@@ -251,6 +251,34 @@ class TestFilterContrast:
             [0.0000, 0.2500, 0.5000, 0.7500, 1.0000],
         ], dtype=float)).all()
 
+    def test_filter_black(self, image_5_5_low_contrast):
+        """Given image data and a black point, :func:`filter_contrast`
+        adjust the range of the data to ensure the darkest color is the
+        given black point and the lightest is white.
+        """
+        result = f.filter_contrast(image_5_5_low_contrast, black=0.5)
+        assert (np.around(result, 4) == np.array([
+            [0.5000, 0.6250, 0.7500, 0.8750, 1.0000],
+            [0.5000, 0.6250, 0.7500, 0.8750, 1.0000],
+            [0.5000, 0.6250, 0.7500, 0.8750, 1.0000],
+            [0.5000, 0.6250, 0.7500, 0.8750, 1.0000],
+            [0.5000, 0.6250, 0.7500, 0.8750, 1.0000],
+        ], dtype=float)).all()
+
+    def test_filter_white(self, image_5_5_low_contrast):
+        """Given image data and a white point, :func:`filter_contrast`
+        adjust the range of the data to ensure the darkest color is black
+        and the lightest is the given maximum.
+        """
+        result = f.filter_contrast(image_5_5_low_contrast, white=0.5)
+        assert (np.around(result, 4) == np.array([
+            [0.0000, 0.1250, 0.2500, 0.3750, 0.5000],
+            [0.0000, 0.1250, 0.2500, 0.3750, 0.5000],
+            [0.0000, 0.1250, 0.2500, 0.3750, 0.5000],
+            [0.0000, 0.1250, 0.2500, 0.3750, 0.5000],
+            [0.0000, 0.1250, 0.2500, 0.3750, 0.5000],
+        ], dtype=float)).all()
+
 
 class TestFilterFlip:
     def test_filter_x_axis(self, a):
