@@ -9,7 +9,10 @@ Welcome to imgfilt's documentation!
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
-
+   
+   self
+   /api.rst
+   /requirements.rst
 
 
 Indices and tables

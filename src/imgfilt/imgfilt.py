@@ -123,6 +123,7 @@ def filter_flip(a: ImgAry, axis: int) -> ImgAry:
     return np.flip(a, axis)
 
 
+@processes_by_grayscale_frame
 def filter_gaussian_blur(a: ImgAry, sigma: float) -> ImgAry:
     """Perform a gaussian blur.
 
@@ -140,12 +141,6 @@ def filter_gaussian_blur(a: ImgAry, sigma: float) -> ImgAry:
     :returns: A :class:`numpy.ndarray` object.
     :rtype: numpy.ndarray
     """
-    if len(a.shape) == 3 and a.shape[-1] != 3:
-        result = np.zeros(a.shape, dtype=a.dtype)
-        for i, z in enumerate(a):
-            result[i] = filter_gaussian_blur(z, sigma=sigma)
-        return result
-    
     return cv2.GaussianBlur(a, (0, 0), sigma, sigma, 0)
 
 
